@@ -44,3 +44,7 @@ yarn-error.log
 # Frontend build output
 dist/
 .vite/ 
+# Backend artifacts
+backend/news.db
+backend/news.json.backup
+backend/logs/
