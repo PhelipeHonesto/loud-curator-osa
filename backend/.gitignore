@@ -8,3 +8,7 @@ __pycache__/
 # Venv
 venv
 .venv 
+# Database and logs
+news.db
+news.json.backup
+logs/

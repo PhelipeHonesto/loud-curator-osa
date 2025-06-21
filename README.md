@@ -81,6 +81,9 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
+# Create or migrate the SQLite database
+python -c "from database_sqlite import init_database; init_database()"
+
 # Frontend setup
 cd ../frontend
 npm install
