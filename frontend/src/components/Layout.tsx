@@ -1,6 +1,13 @@
 import { Outlet, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Layout = () => {
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <div className="app-container">
       <nav className="main-nav">
@@ -14,6 +21,12 @@ const Layout = () => {
           <li><Link to="/drafts">Drafts</Link></li>
           <li><Link to="/settings">Settings</Link></li>
         </ul>
+        <div className="nav-user">
+          <span className="username">Welcome, {user?.username}</span>
+          <button onClick={handleLogout} className="logout-button">
+            Logout
+          </button>
+        </div>
       </nav>
       <main className="content-area">
         <Outlet />

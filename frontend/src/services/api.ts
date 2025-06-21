@@ -11,32 +11,94 @@ const handleResponse = async (response: Response) => {
   return response.json();
 };
 
+// Authentication functions
+export const login = async (username: string, password: string, isRegister: boolean = false) => {
+  const formData = new FormData();
+  formData.append('username', username);
+  formData.append('password', password);
+
+  const endpoint = isRegister ? '/auth/register' : '/auth/token';
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw { response: { data: errorData } };
+  }
+
+  return response.json();
+};
+
+export const register = async (username: string, password: string) => {
+  return login(username, password, true);
+};
+
+export const getCurrentUser = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No token found');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  return handleResponse(response);
+};
+
+// Add authorization header to requests
+const getAuthHeaders = (): Record<string, string> => {
+  const token = localStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
 export const getNews = async (): Promise<Article[]> => {
-  const response = await fetch(`${API_BASE_URL}/news`);
+  const response = await fetch(`${API_BASE_URL}/news`, {
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const ingestNews = async () => {
-  const response = await fetch(`${API_BASE_URL}/ingest`, { method: 'POST' });
+  const response = await fetch(`${API_BASE_URL}/ingest`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const selectStory = async (storyId: string) => {
-  const response = await fetch(`${API_BASE_URL}/select/${storyId}`, { method: 'POST' });
+  const response = await fetch(`${API_BASE_URL}/select/${storyId}`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const editStory = async (storyId: string) => {
-  const response = await fetch(`${API_BASE_URL}/edit/${storyId}`, { method: 'POST' });
+  const response = await fetch(`${API_BASE_URL}/edit/${storyId}`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const postToSlack = async (storyId: string) => {
-  const response = await fetch(`${API_BASE_URL}/slack/${storyId}`, { method: 'POST' });
+  const response = await fetch(`${API_BASE_URL}/slack/${storyId}`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const postToSlackFigma = async (storyId: string) => {
-  const response = await fetch(`${API_BASE_URL}/slack-figma/${storyId}`, { method: 'POST' });
+  const response = await fetch(`${API_BASE_URL}/slack-figma/${storyId}`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };

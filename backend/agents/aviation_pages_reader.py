@@ -1,9 +1,31 @@
 import uuid
 from datetime import datetime
 from urllib.parse import urljoin
+from typing import List, Dict, Any
+import asyncio
 
 import requests
 from bs4 import BeautifulSoup
+
+
+class AviationPagesReader:
+    """Reader for aviation news from various sources."""
+    
+    def __init__(self):
+        self.name = "Aviation Pages Reader"
+    
+    async def fetch_articles(self) -> List[Dict[str, Any]]:
+        """Fetch articles from aviation sources."""
+        articles = []
+        
+        # Fetch from SkyWest
+        try:
+            skywest_articles = fetch_skywest_news()
+            articles.extend(skywest_articles)
+        except Exception as e:
+            print(f"Error fetching SkyWest news: {e}")
+        
+        return articles
 
 
 def fetch_skywest_news():

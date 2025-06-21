@@ -1,0 +1,79 @@
+{"timestamp": "2025-06-21T19:09:00.906471", "level": "INFO", "logger": "scheduler", "message": "Ingestion job scheduled: daily at 09:00", "module": "scheduler", "function": "_setup_ingestion_job", "line": 142}
+{"timestamp": "2025-06-21T19:09:00.907013", "level": "INFO", "logger": "scheduler", "message": "Ingestion schedule updated: {'enabled': True, 'frequency': 'daily', 'time': '09:00', 'days': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']}", "module": "scheduler", "function": "set_ingestion_schedule", "line": 93}
+{"timestamp": "2025-06-21T19:09:00.908385", "level": "INFO", "logger": "scheduler", "message": "Posting job scheduled: weekly at 10:00", "module": "scheduler", "function": "_setup_posting_job", "line": 158}
+{"timestamp": "2025-06-21T19:09:00.908448", "level": "INFO", "logger": "scheduler", "message": "Posting schedule updated: {'enabled': True, 'frequency': 'weekly', 'time': '10:00', 'days': ['monday', 'tuesday']}", "module": "scheduler", "function": "set_posting_schedule", "line": 114}
+{"timestamp": "2025-06-21T19:09:00.909494", "level": "INFO", "logger": "scheduler", "message": "Running ingestion now...", "module": "scheduler", "function": "run_now", "line": 235}
+{"timestamp": "2025-06-21T19:09:00.909584", "level": "INFO", "logger": "scheduler", "message": "Manual ingestion completed: {'message': 'Ingestion completed'}", "module": "scheduler", "function": "run_now", "line": 237}
+{"timestamp": "2025-06-21T19:09:00.911186", "level": "INFO", "logger": "scheduler", "message": "Running posting now...", "module": "scheduler", "function": "run_now", "line": 239}
+{"timestamp": "2025-06-21T19:09:00.911424", "level": "INFO", "logger": "scheduler", "message": "Manual posting completed: {'message': 'Posting completed'}", "module": "scheduler", "function": "run_now", "line": 241}
+{"timestamp": "2025-06-21T19:09:00.913858", "level": "INFO", "logger": "scheduler", "message": "Scheduler started", "module": "scheduler", "function": "start", "line": 198}
+{"timestamp": "2025-06-21T19:09:05.919402", "level": "INFO", "logger": "scheduler", "message": "Scheduler stopped", "module": "scheduler", "function": "stop", "line": 205}
+{"timestamp": "2025-06-21T19:09:47.935868", "level": "INFO", "logger": "scheduler", "message": "Scheduler started", "module": "scheduler", "function": "start", "line": 198}
+{"timestamp": "2025-06-21T19:09:49.494291", "level": "INFO", "logger": "scheduler", "message": "Scheduler started", "module": "scheduler", "function": "start", "line": 198}
+{"timestamp": "2025-06-21T19:21:19.127901", "level": "INFO", "logger": "database_sqlite", "message": "Database initialized successfully", "module": "database_sqlite", "function": "init_database", "line": 57}
+{"timestamp": "2025-06-21T19:21:19.130968", "level": "INFO", "logger": "database_sqlite", "message": "Saved 161 articles to database", "module": "database_sqlite", "function": "save_all_articles", "line": 120}
+{"timestamp": "2025-06-21T19:21:19.131126", "level": "INFO", "logger": "database_sqlite", "message": "Migration completed. Old file backed up to news.json.backup", "module": "database_sqlite", "function": "migrate_from_json", "line": 378}
+{"timestamp": "2025-06-21T19:21:19.131198", "level": "INFO", "logger": "main", "message": "Database initialized successfully", "module": "main", "function": "<module>", "line": 46}
+{"timestamp": "2025-06-21T19:21:24.246173", "level": "INFO", "logger": "database_sqlite", "message": "Database initialized successfully", "module": "database_sqlite", "function": "init_database", "line": 57}
+{"timestamp": "2025-06-21T19:21:24.246296", "level": "INFO", "logger": "database_sqlite", "message": "No JSON file to migrate from", "module": "database_sqlite", "function": "migrate_from_json", "line": 363}
+{"timestamp": "2025-06-21T19:21:24.246352", "level": "INFO", "logger": "main", "message": "Database initialized successfully", "module": "main", "function": "<module>", "line": 46}
+{"timestamp": "2025-06-21T19:21:56.259871", "level": "INFO", "logger": "database_sqlite", "message": "Database initialized successfully", "module": "database_sqlite", "function": "init_database", "line": 57}
+{"timestamp": "2025-06-21T19:21:56.260670", "level": "INFO", "logger": "database_sqlite", "message": "No JSON file to migrate from", "module": "database_sqlite", "function": "migrate_from_json", "line": 363}
+{"timestamp": "2025-06-21T19:21:56.260729", "level": "INFO", "logger": "main", "message": "Database initialized successfully", "module": "main", "function": "<module>", "line": 46}
+{"timestamp": "2025-06-21T19:21:56.264874", "level": "INFO", "logger": "main", "message": "Starting Loud Curator API...", "module": "main", "function": "startup_event", "line": 70}
+{"timestamp": "2025-06-21T19:21:56.265036", "level": "INFO", "logger": "scheduler", "message": "Scheduler started", "module": "scheduler", "function": "start", "line": 198}
+{"timestamp": "2025-06-21T19:21:56.265083", "level": "INFO", "logger": "main", "message": "Scheduler started successfully", "module": "main", "function": "startup_event", "line": 74}
+{"timestamp": "2025-06-21T19:21:56.265122", "level": "INFO", "logger": "main", "message": "Loud Curator API started successfully", "module": "main", "function": "startup_event", "line": 77}
+{"timestamp": "2025-06-21T19:22:08.433357", "level": "INFO", "logger": "main", "message": "Shutting down Loud Curator API...", "module": "main", "function": "shutdown_event", "line": 87}
+{"timestamp": "2025-06-21T19:22:13.440371", "level": "INFO", "logger": "scheduler", "message": "Scheduler stopped", "module": "scheduler", "function": "stop", "line": 205}
+{"timestamp": "2025-06-21T19:22:13.440545", "level": "INFO", "logger": "main", "message": "Scheduler stopped", "module": "main", "function": "shutdown_event", "line": 91}
+{"timestamp": "2025-06-21T19:22:13.440596", "level": "INFO", "logger": "main", "message": "Loud Curator API shutdown complete", "module": "main", "function": "shutdown_event", "line": 93}
+{"timestamp": "2025-06-21T19:22:13.879102", "level": "INFO", "logger": "database_sqlite", "message": "Database initialized successfully", "module": "database_sqlite", "function": "init_database", "line": 57}
+{"timestamp": "2025-06-21T19:22:13.879479", "level": "INFO", "logger": "database_sqlite", "message": "No JSON file to migrate from", "module": "database_sqlite", "function": "migrate_from_json", "line": 363}
+{"timestamp": "2025-06-21T19:22:13.879670", "level": "INFO", "logger": "main", "message": "Database initialized successfully", "module": "main", "function": "<module>", "line": 46}
+{"timestamp": "2025-06-21T19:22:13.884887", "level": "INFO", "logger": "main", "message": "Starting Loud Curator API...", "module": "main", "function": "startup_event", "line": 70}
+{"timestamp": "2025-06-21T19:22:13.885226", "level": "INFO", "logger": "scheduler", "message": "Scheduler started", "module": "scheduler", "function": "start", "line": 198}
+{"timestamp": "2025-06-21T19:22:13.885294", "level": "INFO", "logger": "main", "message": "Scheduler started successfully", "module": "main", "function": "startup_event", "line": 74}
+{"timestamp": "2025-06-21T19:22:13.885337", "level": "INFO", "logger": "main", "message": "Loud Curator API started successfully", "module": "main", "function": "startup_event", "line": 77}
+{"timestamp": "2025-06-21T19:22:13.890114", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:22:13.897818", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:22:18.651897", "level": "INFO", "logger": "main", "message": "Shutting down Loud Curator API...", "module": "main", "function": "shutdown_event", "line": 87}
+{"timestamp": "2025-06-21T19:22:23.657653", "level": "INFO", "logger": "scheduler", "message": "Scheduler stopped", "module": "scheduler", "function": "stop", "line": 205}
+{"timestamp": "2025-06-21T19:22:23.661090", "level": "INFO", "logger": "main", "message": "Scheduler stopped", "module": "main", "function": "shutdown_event", "line": 91}
+{"timestamp": "2025-06-21T19:22:23.661363", "level": "INFO", "logger": "main", "message": "Loud Curator API shutdown complete", "module": "main", "function": "shutdown_event", "line": 93}
+{"timestamp": "2025-06-21T19:22:24.031762", "level": "INFO", "logger": "database_sqlite", "message": "Database initialized successfully", "module": "database_sqlite", "function": "init_database", "line": 57}
+{"timestamp": "2025-06-21T19:22:24.031867", "level": "INFO", "logger": "database_sqlite", "message": "No JSON file to migrate from", "module": "database_sqlite", "function": "migrate_from_json", "line": 363}
+{"timestamp": "2025-06-21T19:22:24.031922", "level": "INFO", "logger": "main", "message": "Database initialized successfully", "module": "main", "function": "<module>", "line": 46}
+{"timestamp": "2025-06-21T19:22:24.035892", "level": "INFO", "logger": "main", "message": "Starting Loud Curator API...", "module": "main", "function": "startup_event", "line": 70}
+{"timestamp": "2025-06-21T19:22:24.036024", "level": "INFO", "logger": "scheduler", "message": "Scheduler started", "module": "scheduler", "function": "start", "line": 198}
+{"timestamp": "2025-06-21T19:22:24.036070", "level": "INFO", "logger": "main", "message": "Scheduler started successfully", "module": "main", "function": "startup_event", "line": 74}
+{"timestamp": "2025-06-21T19:22:24.036108", "level": "INFO", "logger": "main", "message": "Loud Curator API started successfully", "module": "main", "function": "startup_event", "line": 77}
+{"timestamp": "2025-06-21T19:23:06.186833", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:06.204774", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:09.978191", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:09.987478", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:15.322779", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.01s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:15.338522", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:20.543625", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:20.553282", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:21.047964", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:21.061630", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:22.050597", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:22.066683", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:27.074535", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.01s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:23:27.094073", "level": "INFO", "logger": "main", "message": "GET /news - Retrieved 161 articles in 0.00s", "module": "main", "function": "get_news", "line": 140}
+{"timestamp": "2025-06-21T19:25:23.034390", "level": "INFO", "logger": "main", "message": "Shutting down Loud Curator API...", "module": "main", "function": "shutdown_event", "line": 87}
+{"timestamp": "2025-06-21T19:25:24.045996", "level": "INFO", "logger": "scheduler", "message": "Scheduler stopped", "module": "scheduler", "function": "stop", "line": 205}
+{"timestamp": "2025-06-21T19:25:24.046183", "level": "INFO", "logger": "main", "message": "Scheduler stopped", "module": "main", "function": "shutdown_event", "line": 91}
+{"timestamp": "2025-06-21T19:25:24.046285", "level": "INFO", "logger": "main", "message": "Loud Curator API shutdown complete", "module": "main", "function": "shutdown_event", "line": 93}
+{"timestamp": "2025-06-21T19:26:13.411050", "level": "INFO", "logger": "database_sqlite", "message": "Database initialized successfully", "module": "database_sqlite", "function": "init_database", "line": 69}
+{"timestamp": "2025-06-21T19:26:13.411793", "level": "INFO", "logger": "database_sqlite", "message": "No JSON file to migrate from", "module": "database_sqlite", "function": "migrate_from_json", "line": 375}
+{"timestamp": "2025-06-21T19:26:13.411990", "level": "INFO", "logger": "main", "message": "Database initialized successfully", "module": "main", "function": "<module>", "line": 46}
+{"timestamp": "2025-06-21T19:26:13.417455", "level": "INFO", "logger": "main", "message": "Starting Loud Curator API...", "module": "main", "function": "startup_event", "line": 70}
+{"timestamp": "2025-06-21T19:26:13.417790", "level": "INFO", "logger": "scheduler", "message": "Scheduler started", "module": "scheduler", "function": "start", "line": 198}
+{"timestamp": "2025-06-21T19:26:13.417855", "level": "INFO", "logger": "main", "message": "Scheduler started successfully", "module": "main", "function": "startup_event", "line": 74}
+{"timestamp": "2025-06-21T19:26:13.417901", "level": "INFO", "logger": "main", "message": "Loud Curator API started successfully", "module": "main", "function": "startup_event", "line": 77}
+{"timestamp": "2025-06-21T19:26:29.631315", "level": "INFO", "logger": "main", "message": "Shutting down Loud Curator API...", "module": "main", "function": "shutdown_event", "line": 87}
+{"timestamp": "2025-06-21T19:26:34.635769", "level": "INFO", "logger": "scheduler", "message": "Scheduler stopped", "module": "scheduler", "function": "stop", "line": 205}
+{"timestamp": "2025-06-21T19:26:34.636254", "level": "INFO", "logger": "main", "message": "Scheduler stopped", "module": "main", "function": "shutdown_event", "line": 91}
+{"timestamp": "2025-06-21T19:26:34.636421", "level": "INFO", "logger": "main", "message": "Loud Curator API shutdown complete", "module": "main", "function": "shutdown_event", "line": 93}

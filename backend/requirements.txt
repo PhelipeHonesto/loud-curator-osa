@@ -4,4 +4,9 @@ requests
 beautifulsoup4
 lxml
 python-dotenv
-openai 
+openai
+pytest
+pytest-cov
+pytest-mock
+feedparser
+schedule 

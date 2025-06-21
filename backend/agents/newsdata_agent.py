@@ -2,9 +2,29 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import List, Dict, Any
 
 import requests
 from dotenv import load_dotenv
+
+
+class NewsDataAgent:
+    """Agent for fetching news from NewsData.io API."""
+    
+    def __init__(self):
+        self.name = "NewsData Agent"
+        # Load environment variables from .env file
+        dotenv_path = Path(__file__).parent.parent / ".env"
+        load_dotenv(dotenv_path=dotenv_path)
+        self.api_key = os.getenv("NEWSDATA_API_KEY")
+    
+    async def fetch_articles(self) -> List[Dict[str, Any]]:
+        """Fetch articles from NewsData.io."""
+        if not self.api_key:
+            print("Error: NEWSDATA_API_KEY not found in .env file.")
+            return []
+        
+        return fetch_newsdata_news()
 
 
 def fetch_newsdata_news():
