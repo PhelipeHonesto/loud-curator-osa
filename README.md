@@ -97,3 +97,13 @@ You will need two separate terminal windows to run both the backend and frontend
 
 You can now open your web browser to the frontend URL to use the application.
 
+
+### Quick Development Script
+
+To start both the backend and frontend at once, run the helper script from the project root:
+
+```bash
+./dev.sh
+```
+
+The script launches the FastAPI backend and Vite frontend concurrently. Press `Ctrl+C` to stop both servers.
