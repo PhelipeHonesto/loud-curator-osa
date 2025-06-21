@@ -350,10 +350,8 @@ def deduplicate_articles(
     existing_articles = existing_articles or []
 
     unique_articles: List[Dict[str, Any]] = []
-    seen_urls = {article.get("link", "").strip() for article in existing_articles}
-    seen_titles = {
-        article.get("title", "").strip().lower() for article in existing_articles
-    }
+    seen_urls = {art.get("link", "").strip() for art in existing_articles}
+    seen_titles = {art.get("title", "").strip().lower() for art in existing_articles}
 
     for article in new_articles:
         url = article.get("link", "").strip()
@@ -372,6 +370,7 @@ def deduplicate_articles(
         seen_titles.add(title)
 
     return unique_articles
+
 
 def title_similarity(title1: str, title2: str) -> float:
     """Calculate similarity between two titles using simple word overlap."""
