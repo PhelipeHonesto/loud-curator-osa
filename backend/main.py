@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,9 +18,11 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 @app.get("/news")
 def get_news():
@@ -33,6 +36,7 @@ def get_news():
         news = []
     return news
 
+
 @app.post("/ingest")
 def ingest_news():
     # --- Read existing news ---
@@ -43,8 +47,8 @@ def ingest_news():
             existing_news = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         existing_news = []
-    
-    existing_links = {article['link'] for article in existing_news}
+
+    existing_links = {article["link"] for article in existing_news}
 
     # --- Fetch new news from agents ---
     skywest_articles = fetch_skywest_news()
@@ -53,13 +57,15 @@ def ingest_news():
 
     # --- Filter out duplicates ---
     unique_new_articles = [
-        article for article in new_articles if article['link'] not in existing_links
+        article for article in new_articles if article["link"] not in existing_links
     ]
 
     # --- Combine and save ---
     combined_news = unique_new_articles + existing_news
-    
+
     with open(news_file, "w") as f:
         json.dump(combined_news, f, indent=2)
 
-    return {"message": f"Successfully ingested {len(unique_new_articles)} new articles."} 
+    return {
+        "message": f"Successfully ingested {len(unique_new_articles)} new articles."
+    }
