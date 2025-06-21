@@ -47,6 +47,35 @@ def get_article_dependency(story_id: str) -> Dict[str, Any]:
         )
     return article
 
+def format_figma_text(story: dict) -> str:
+    """
+    Formats a story into Figma-compatible text format with hashtags.
+    """
+    return f"""#title
+{story.get('title', 'No Title')}
+
+#date
+{story.get('date', 'No Date')}
+
+#body
+{story.get('body', 'No content available.')}
+
+#link
+{story.get('link', 'No link available.')}"""
+
+def post_to_slack_webhook(webhook_url: str, payload: dict) -> bool:
+    """
+    Generic function to post to any Slack webhook.
+    Returns True if successful, False otherwise.
+    """
+    try:
+        response = requests.post(webhook_url, json=payload)
+        response.raise_for_status()
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to post to Slack webhook: {e}")
+        return False
+
 # --- API Endpoints ---
 
 @app.get("/", summary="Root Endpoint", tags=["Health"])
@@ -166,10 +195,10 @@ def edit_story(article: Dict = Depends(get_article_dependency)):
             detail=f"An error occurred with the OpenAI API: {e}",
         )
 
-@app.post("/slack/{story_id}", summary="Post Story to Slack", tags=["Curation"])
+@app.post("/slack/{story_id}", summary="Post Story to Default Slack Channel", tags=["Curation"])
 def post_to_slack(article: Dict = Depends(get_article_dependency)):
     """
-    Formats and sends an edited article to a Slack channel via a webhook.
+    Formats and sends an edited article to the default Slack channel via webhook.
     The article's status is updated to 'posted'.
     """
     if article.get("status") != "edited":
@@ -193,21 +222,56 @@ def post_to_slack(article: Dict = Depends(get_article_dependency)):
         ]
     }
     
-    try:
-        response = requests.post(slack_webhook_url, json=slack_payload)
-        response.raise_for_status()  # Raise an exception for bad status codes
-
+    if post_to_slack_webhook(slack_webhook_url, slack_payload):
         all_news = database.get_all_news()
         for item in all_news:
             if item.get("id") == article.get("id"):
                 item["status"] = "posted"
                 break
         database.save_all_news(all_news)
-
-        return {"message": f"Story {article.get('id')} has been posted to Slack."}
-
-    except requests.exceptions.RequestException as e:
+        return {"message": f"Story {article.get('id')} has been posted to default Slack channel."}
+    else:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to post to Slack: {e}",
+            detail="Failed to post to Slack webhook.",
+        )
+
+@app.post("/slack-figma/{story_id}", summary="Post Story to Figma Slack Channel", tags=["Curation"])
+def post_to_slack_figma(article: Dict = Depends(get_article_dependency)):
+    """
+    Formats and sends an edited article to the Figma Slack channel in Figma-compatible format.
+    The article's status is updated to 'posted'.
+    """
+    if article.get("status") != "edited":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Article must be 'edited' before posting to Slack.",
+        )
+
+    slack_webhook_url = os.getenv("SLACK_WEBHOOK_FIGMA_URL")
+    if not slack_webhook_url:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="SLACK_WEBHOOK_FIGMA_URL is not configured on the server.",
+        )
+
+    # Format the story in Figma-compatible format
+    figma_text = format_figma_text(article)
+    
+    slack_payload = {
+        "text": figma_text
+    }
+    
+    if post_to_slack_webhook(slack_webhook_url, slack_payload):
+        all_news = database.get_all_news()
+        for item in all_news:
+            if item.get("id") == article.get("id"):
+                item["status"] = "posted"
+                break
+        database.save_all_news(all_news)
+        return {"message": f"Story {article.get('id')} has been posted to Figma Slack channel."}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to post to Figma Slack webhook.",
         )

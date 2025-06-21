@@ -35,3 +35,8 @@ export const postToSlack = async (storyId: string) => {
   const response = await fetch(`${API_BASE_URL}/slack/${storyId}`, { method: 'POST' });
   return handleResponse(response);
 };
+
+export const postToSlackFigma = async (storyId: string) => {
+  const response = await fetch(`${API_BASE_URL}/slack-figma/${storyId}`, { method: 'POST' });
+  return handleResponse(response);
+};

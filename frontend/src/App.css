@@ -236,6 +236,16 @@ body {
   transform: translateY(-1px);
 }
 
+.post-figma-btn {
+  background: linear-gradient(135deg, #9c27b0, #e91e63);
+  color: white;
+}
+
+.post-figma-btn:hover {
+  background: linear-gradient(135deg, #e91e63, #9c27b0);
+  transform: translateY(-1px);
+}
+
 .rewrite-btn {
   background: linear-gradient(135deg, #6c757d, #9e9e9e);
   color: white;

@@ -1,6 +1,6 @@
 import type { Article } from '../types';
 
-type ActionType = 'select' | 'edit' | 'post';
+type ActionType = 'select' | 'edit' | 'post' | 'post-figma';
 
 interface ArticleCardProps {
     article: Article;
@@ -97,7 +97,14 @@ const ArticleCard = ({ article, onAction, isLoading }: ArticleCardProps) => {
                                     disabled={isLoading}
                                     className="action-btn post-btn"
                                 >
-                                    {isLoading ? 'Posting...' : 'Post to Slack'}
+                                    {isLoading ? 'Posting...' : '📤 Send to Slack'}
+                                </button>
+                                <button 
+                                    onClick={() => onAction('post-figma', article.id)} 
+                                    disabled={isLoading}
+                                    className="action-btn post-figma-btn"
+                                >
+                                    {isLoading ? 'Posting...' : '🪄 Send Figma Format'}
                                 </button>
                             </>
                         )}

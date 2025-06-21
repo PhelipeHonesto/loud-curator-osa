@@ -68,7 +68,7 @@ const Feed = () => {
    * @param action The type of action to perform.
    * @param storyId The ID of the target article.
    */
-  const handleAction = async (action: 'select' | 'edit' | 'post', storyId: string) => {
+  const handleAction = async (action: 'select' | 'edit' | 'post' | 'post-figma', storyId: string) => {
     setActingArticleId(storyId);
     setMessage(null);
     setError(null);
@@ -78,6 +78,7 @@ const Feed = () => {
       select: { apiCall: api.selectStory, loadingMessage: 'Selecting story...' },
       edit: { apiCall: api.editStory, loadingMessage: 'Editing with AI...' },
       post: { apiCall: api.postToSlack, loadingMessage: 'Posting to Slack...' },
+      'post-figma': { apiCall: api.postToSlackFigma, loadingMessage: 'Posting to Figma channel...' },
     };
 
     try {
