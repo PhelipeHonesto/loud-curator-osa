@@ -81,6 +81,11 @@ Next, install the Node.js dependencies for the React frontend.
 ### 3. Running the Application
 
 You will need two separate terminal windows to run both the backend and frontend servers.
+Alternatively, you can start both at once using the `start_dev.sh` script in the project root:
+
+```bash
+./start_dev.sh
+```
 
 1.  **Run the Backend Server:**
     *   Open a terminal window.
@@ -98,6 +103,7 @@ You will need two separate terminal windows to run both the backend and frontend
 You can now open your web browser to the frontend URL to use the application.
 
 
+<<<<<8ny9dr-codex/improve-local-web-app-startup-efficiency
 ### 4. Quick Start Script
 
 For convenience, a `start.sh` script is provided in the project root. This script starts both the FastAPI backend and the Vite frontend concurrently.
@@ -108,3 +114,14 @@ For convenience, a `start.sh` script is provided in the project root. This scrip
 
 Make sure the Python virtual environment and npm dependencies are already installed. Press `Ctrl+C` to stop both servers.
 
+=======
+### Quick Development Script
+
+To start both the backend and frontend at once, run the helper script from the project root:
+
+```bash
+./dev.sh
+```
+
+The script launches the FastAPI backend and Vite frontend concurrently. Press `Ctrl+C` to stop both servers.
+>>>>> main
