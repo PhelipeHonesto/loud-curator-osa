@@ -55,7 +55,7 @@ const Feed = () => {
       if (errorMessage.includes('Failed to fetch')) {
         setError('Could not connect to the backend. Please ensure the server is running and try again.');
       } else {
-        setError(errorMessage);
+      setError(errorMessage);
       }
     } finally {
       setActingArticleId(null);
@@ -96,7 +96,7 @@ const Feed = () => {
        if (errorMessage.includes('Failed to fetch')) {
         setError('Could not connect to the backend. Please ensure the server is running and try again.');
       } else {
-        setError(errorMessage);
+      setError(errorMessage);
       }
     } finally {
       setActingArticleId(null);
