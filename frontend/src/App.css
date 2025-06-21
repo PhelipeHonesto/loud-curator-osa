@@ -5,91 +5,276 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f0f2f5;
+  background-color: #091c35; /* Dark Blue from style guide */
+  color: #f0f2f5; /* Light text for dark background */
 }
 
-.App {
+/* Layout Styles */
+.app-container {
+  display: flex;
+}
+
+.main-nav {
+  width: 250px;
+  background-color: #04142a; /* Slightly darker than bg */
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.nav-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.nav-logo img {
+  width: 80px;
+  margin-bottom: 1rem;
+}
+
+.nav-logo span {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  color: #f17500;
   text-align: center;
 }
 
-.App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
-  margin-bottom: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.main-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.App-header button {
-  background-color: #61dafb;
-  color: #282c34;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  margin-top: 1rem;
+.main-nav ul li a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  padding: 1rem;
+  border-radius: 10px;
   transition: background-color 0.2s;
 }
 
-.App-header button:disabled {
-  background-color: #aaa;
-  cursor: not-allowed;
+.main-nav ul li a:hover {
+  background-color: #0e2a52;
 }
 
-.App-header button:hover:not(:disabled) {
-  background-color: #21a1f1;
+.content-area {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
 }
 
-.message {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #61dafb;
-}
-
+/* Article Card Styles */
 .articles-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+  padding: 1rem 0;
 }
 
 .article-card {
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background-color: #091c35;
+  border-radius: 1rem;
   padding: 1.5rem;
-  width: 100%;
-  max-width: 800px;
-  text-align: left;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #0e2a52;
 }
 
 .article-card:hover {
-    transform: translateY(-5px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
-.article-card h2 {
-  margin-top: 0;
+/* Card Top Section */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
-.article-card a {
-  color: #1a73e8;
-  text-decoration: none;
-  font-weight: bold;
+.tag-chip {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.article-card a:hover {
-  text-decoration: underline;
+.date-source {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.date {
+  font-size: 0.875rem;
+  color: #f17500;
+  font-weight: 600;
 }
 
 .source {
-    margin-top: 1rem;
-    font-size: 0.8rem;
-    color: #555;
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Card Middle Section */
+.card-middle {
+  margin-bottom: 1.5rem;
+}
+
+.article-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-style: italic;
+  color: white;
+  margin: 0 0 1rem 0;
+  line-height: 1.3;
+}
+
+.article-summary {
+  color: #b8c5d6;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Card Bottom Section */
+.card-bottom {
+  border-top: 1px solid #0e2a52;
+  padding-top: 1rem;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.read-more-btn {
+  color: #f17500;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.read-more-btn:hover {
+  color: #ffae42;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.select-btn {
+  background: linear-gradient(135deg, #f17500, #ffae42);
+  color: white;
+}
+
+.select-btn:hover {
+  background: linear-gradient(135deg, #ffae42, #f17500);
+  transform: translateY(-1px);
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #0a4bb6, #1e88e5);
+  color: white;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #1e88e5, #0a4bb6);
+  transform: translateY(-1px);
+}
+
+.reedit-btn {
+  background: linear-gradient(135deg, #0a4bb6, #1e88e5);
+  color: white;
+}
+
+.reedit-btn:hover {
+  background: linear-gradient(135deg, #1e88e5, #0a4bb6);
+  transform: translateY(-1px);
+}
+
+.post-btn {
+  background: linear-gradient(135deg, #28a745, #4caf50);
+  color: white;
+}
+
+.post-btn:hover {
+  background: linear-gradient(135deg, #4caf50, #28a745);
+  transform: translateY(-1px);
+}
+
+.rewrite-btn {
+  background: linear-gradient(135deg, #6c757d, #9e9e9e);
+  color: white;
+}
+
+.rewrite-btn:hover {
+  background: linear-gradient(135deg, #9e9e9e, #6c757d);
+  transform: translateY(-1px);
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .main-nav {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  
+  .articles-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
 }

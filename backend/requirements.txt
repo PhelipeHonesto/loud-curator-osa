@@ -3,4 +3,5 @@ uvicorn
 requests
 beautifulsoup4
 lxml
-python-dotenv 
+python-dotenv
+openai 
