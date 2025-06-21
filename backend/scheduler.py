@@ -41,11 +41,20 @@ class NewsScheduler:
         self.schedules = self.load_schedules()
         
     def load_schedules(self) -> Dict:
-        """Load saved schedules from file."""
+        """Load saved schedules from file, falling back to defaults on error."""
         if self.schedules_file.exists():
             try:
-                with open(self.schedules_file, 'r') as f:
+                with open(self.schedules_file, "r") as f:
                     return json.load(f)
+            except json.JSONDecodeError:
+                logger.warning(
+                    "Invalid JSON in %s, creating fresh schedule file", self.schedules_file
+                )
+                corrupted = self.schedules_file.with_suffix(".corrupted")
+                try:
+                    self.schedules_file.rename(corrupted)
+                except Exception as rename_error:
+                    logger.error("Failed to rename corrupted file: %s", rename_error)
             except Exception as e:
                 logger.error(f"Error loading schedules: {e}")
         return {

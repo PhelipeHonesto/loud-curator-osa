@@ -333,35 +333,36 @@ def deduplicate_articles(
     new_articles: List[Dict[str, Any]],
     existing_articles: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
-    """Remove duplicates between ``new_articles`` and ``existing_articles``.
+    """Remove duplicate articles based on title similarity and URL.
 
-    Articles are considered duplicates if they share the same URL or if their
-    titles are over 80% similar.
+    Args:
+        new_articles: Newly fetched articles to be checked for duplicates.
+        existing_articles: Articles that already exist in the database. These
+            will be considered when checking for duplicates.
+
+    Returns:
+        A list of unique articles from ``new_articles`` with duplicates removed.
     """
 
     if not new_articles:
         return []
 
-    unique_articles: List[Dict[str, Any]] = []
+    existing_articles = existing_articles or []
 
-    # Populate sets with existing article data if provided
-    seen_urls = {
-        art.get("link", "").strip() for art in (existing_articles or [])
-    }
-    seen_titles = {
-        art.get("title", "").strip().lower() for art in (existing_articles or [])
-    }
+    unique_articles: List[Dict[str, Any]] = []
+    seen_urls = {art.get("link", "").strip() for art in existing_articles}
+    seen_titles = {art.get("title", "").strip().lower() for art in existing_articles}
 
     for article in new_articles:
         url = article.get("link", "").strip()
         title = article.get("title", "").strip().lower()
 
-        # Skip if we've already seen this URL
+        # Skip if URL has been seen before
         if url in seen_urls:
             continue
 
-        # Skip if title is very similar to one we've seen
-        if any(title_similarity(title, seen) > 0.8 for seen in seen_titles):
+        # Skip if title is too similar to a seen title
+        if any(title_similarity(title, t) > 0.8 for t in seen_titles):
             continue
 
         unique_articles.append(article)
@@ -369,6 +370,7 @@ def deduplicate_articles(
         seen_titles.add(title)
 
     return unique_articles
+
 
 def title_similarity(title1: str, title2: str) -> float:
     """Calculate similarity between two titles using simple word overlap."""
