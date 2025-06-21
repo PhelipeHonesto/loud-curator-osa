@@ -218,11 +218,14 @@ class SQLiteDatabase:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 
-                cursor.execute('''
-                    UPDATE articles 
-                    SET status = ?, updated_at = ? 
+                cursor.execute(
+                    """
+                    UPDATE articles
+                    SET status = ?, updated_at = ?
                     WHERE id = ?
-                ''', (status, datetime.now().isoformat(), article_id))
+                    """,
+                    (status, datetime.now().isoformat(), article_id),
+                )
                 
                 conn.commit()
                 return cursor.rowcount > 0
