@@ -97,3 +97,14 @@ You will need two separate terminal windows to run both the backend and frontend
 
 You can now open your web browser to the frontend URL to use the application.
 
+
+### 4. Quick Start Script
+
+For convenience, a `start.sh` script is provided in the project root. This script starts both the FastAPI backend and the Vite frontend concurrently.
+
+```bash
+./start.sh
+```
+
+Make sure the Python virtual environment and npm dependencies are already installed. Press `Ctrl+C` to stop both servers.
+
