@@ -81,6 +81,11 @@ Next, install the Node.js dependencies for the React frontend.
 ### 3. Running the Application
 
 You will need two separate terminal windows to run both the backend and frontend servers.
+Alternatively, you can start both at once using the `start_dev.sh` script in the project root:
+
+```bash
+./start_dev.sh
+```
 
 1.  **Run the Backend Server:**
     *   Open a terminal window.
