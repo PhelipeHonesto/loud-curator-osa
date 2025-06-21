@@ -23,7 +23,13 @@ const Feed = () => {
     setError(null);
     api.getNews()
       .then(setArticles)
-      .catch(() => setError('Could not load news. Please try again later.'))
+      .catch((err) => {
+        if (err instanceof Error && err.message.includes('Failed to fetch')) {
+          setError('Could not connect to the backend. Please ensure the server is running and try again.');
+        } else {
+          setError('Could not load news. Please try again later.');
+        }
+      })
       .finally(() => setActingArticleId(null));
   }, []);
 
@@ -46,7 +52,11 @@ const Feed = () => {
       loadNews(); // Refresh the feed
     } catch (err: any) {
       const errorMessage = err.message || 'An unknown error occurred during ingestion.';
-      setError(errorMessage);
+      if (errorMessage.includes('Failed to fetch')) {
+        setError('Could not connect to the backend. Please ensure the server is running and try again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setActingArticleId(null);
       setTimeout(() => setMessage(null), 5000);
@@ -83,7 +93,11 @@ const Feed = () => {
       loadNews();
     } catch (err: any) {
       const errorMessage = err.message || `An unknown error occurred while performing action: ${action}.`;
-      setError(errorMessage);
+       if (errorMessage.includes('Failed to fetch')) {
+        setError('Could not connect to the backend. Please ensure the server is running and try again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setActingArticleId(null);
       // Clear the message after a few seconds
