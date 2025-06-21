@@ -31,10 +31,11 @@ Add these to your `.env` file in the backend directory:
 OPENAI_API_KEY=your_openai_api_key_here
 
 # Slack Webhook URLs for dual-channel posting
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
-SLACK_WEBHOOK_FIGMA_URL=https://hooks.slack.com/services/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
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
+SLACK_WEBHOOK_FIGMA_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
 
 ```
+**Note**: Keep these webhook URLs private and do not share them publicly.
 
 ### 3. API Endpoints
 
