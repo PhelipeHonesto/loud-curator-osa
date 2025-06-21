@@ -329,38 +329,45 @@ async def run_ingestion():
         logger.error(f"Error during ingestion: {e}")
         logger.error(traceback.format_exc())
 
-def deduplicate_articles(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Remove duplicate articles based on title similarity and URL."""
-    if not articles:
+def deduplicate_articles(
+    new_articles: List[Dict[str, Any]],
+    existing_articles: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Remove duplicates between ``new_articles`` and ``existing_articles``.
+
+    Articles are considered duplicates if they share the same URL or if their
+    titles are over 80% similar.
+    """
+
+    if not new_articles:
         return []
-    
-    unique_articles = []
-    seen_urls = set()
-    seen_titles = set()
-    
-    for article in articles:
-        url = article.get('link', '').strip()
-        title = article.get('title', '').strip().lower()
-        
-        # Check for exact URL match
+
+    unique_articles: List[Dict[str, Any]] = []
+
+    # Populate sets with existing article data if provided
+    seen_urls = {
+        art.get("link", "").strip() for art in (existing_articles or [])
+    }
+    seen_titles = {
+        art.get("title", "").strip().lower() for art in (existing_articles or [])
+    }
+
+    for article in new_articles:
+        url = article.get("link", "").strip()
+        title = article.get("title", "").strip().lower()
+
+        # Skip if we've already seen this URL
         if url in seen_urls:
             continue
-        
-        # Check for similar title (fuzzy matching)
-        title_similar = False
-        for seen_title in seen_titles:
-            if title_similarity(title, seen_title) > 0.8:  # 80% similarity threshold
-                title_similar = True
-                break
-        
-        if title_similar:
+
+        # Skip if title is very similar to one we've seen
+        if any(title_similarity(title, seen) > 0.8 for seen in seen_titles):
             continue
-        
-        # Add to unique articles
+
         unique_articles.append(article)
         seen_urls.add(url)
         seen_titles.add(title)
-    
+
     return unique_articles
 
 def title_similarity(title1: str, title2: str) -> float:
