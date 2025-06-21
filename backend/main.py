@@ -329,38 +329,48 @@ async def run_ingestion():
         logger.error(f"Error during ingestion: {e}")
         logger.error(traceback.format_exc())
 
-def deduplicate_articles(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Remove duplicate articles based on title similarity and URL."""
-    if not articles:
+def deduplicate_articles(
+    new_articles: List[Dict[str, Any]],
+    existing_articles: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Remove duplicate articles based on title similarity and URL.
+
+    Args:
+        new_articles: Newly fetched articles to be checked for duplicates.
+        existing_articles: Articles that already exist in the database. These
+            will be considered when checking for duplicates.
+
+    Returns:
+        A list of unique articles from ``new_articles`` with duplicates removed.
+    """
+
+    if not new_articles:
         return []
-    
-    unique_articles = []
-    seen_urls = set()
-    seen_titles = set()
-    
-    for article in articles:
-        url = article.get('link', '').strip()
-        title = article.get('title', '').strip().lower()
-        
-        # Check for exact URL match
+
+    existing_articles = existing_articles or []
+
+    unique_articles: List[Dict[str, Any]] = []
+    seen_urls = {article.get("link", "").strip() for article in existing_articles}
+    seen_titles = {
+        article.get("title", "").strip().lower() for article in existing_articles
+    }
+
+    for article in new_articles:
+        url = article.get("link", "").strip()
+        title = article.get("title", "").strip().lower()
+
+        # Skip if URL has been seen before
         if url in seen_urls:
             continue
-        
-        # Check for similar title (fuzzy matching)
-        title_similar = False
-        for seen_title in seen_titles:
-            if title_similarity(title, seen_title) > 0.8:  # 80% similarity threshold
-                title_similar = True
-                break
-        
-        if title_similar:
+
+        # Skip if title is too similar to a seen title
+        if any(title_similarity(title, t) > 0.8 for t in seen_titles):
             continue
-        
-        # Add to unique articles
+
         unique_articles.append(article)
         seen_urls.add(url)
         seen_titles.add(title)
-    
+
     return unique_articles
 
 def title_similarity(title1: str, title2: str) -> float:
