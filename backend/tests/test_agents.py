@@ -86,8 +86,12 @@ class TestNewsdataAgent:
         assert articles[0]['status'] == 'new'
     
     @patch.dict('os.environ', {}, clear=True)
-    def test_fetch_newsdata_news_no_api_key(self):
+    @patch('agents.newsdata_agent.load_dotenv')
+    def test_fetch_newsdata_news_no_api_key(self, mock_load_dotenv):
         """Test handling of missing API key."""
+        # Ensure load_dotenv doesn't load any .env file
+        mock_load_dotenv.return_value = None
+        
         articles = fetch_newsdata_news()
         
         assert isinstance(articles, list)

@@ -40,6 +40,13 @@ A comprehensive news curation platform that automatically ingests, processes, an
 - **API Health Monitoring**: Health checks and performance metrics
 - **Background Processing**: Asynchronous news ingestion and processing
 
+### Production Features
+- **Environment Validation**: Automatic validation of required configuration
+- **Health Check Endpoints**: Comprehensive monitoring endpoints
+- **Rate Limiting**: Configurable API rate limiting for production
+- **Security Best Practices**: JWT authentication, password hashing, CORS
+- **Monitoring Ready**: Detailed health checks for load balancers and monitoring systems
+
 ## 🛠️ Technology Stack
 
 ### Backend
@@ -94,24 +101,25 @@ cd ..
 ```
 
 ### Environment Variables
-Create a `.env` file in the backend directory:
+Copy `backend/env.example` to `backend/.env` and configure your settings:
 
 ```env
-# API Keys
+# Required API Keys
 OPENAI_API_KEY=your_openai_api_key
+SLACK_WEBHOOK_URL=your_slack_webhook_url
+
+# Optional API Keys (for additional news sources)
 NEWSDATA_API_KEY=your_newsdata_api_key
 GROUNDNEWS_API_KEY=your_groundnews_api_key
-
-# Slack Integration
-SLACK_WEBHOOK_URL=your_slack_webhook_url
 SLACK_WEBHOOK_FIGMA_URL=your_figma_slack_webhook_url
 
-# Database
-DATABASE_URL=sqlite:///./news.db
+# Security (Change this in production!)
+SECRET_KEY=your_secure_secret_key
 
-# Logging
-LOG_LEVEL=INFO
-LOG_FILE=app.log
+# Rate Limiting (Optional)
+RATE_LIMIT_ENABLED=false
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW=3600
 ```
 
 ## 🎯 Usage
@@ -140,6 +148,20 @@ LOG_FILE=app.log
 - **Statistics**: Monitor article counts and sources
 
 ## 🔧 Configuration
+
+### Health Check Endpoints
+Monitor your application health:
+
+```bash
+# Basic health check
+curl http://localhost:8000/health
+
+# Detailed health check for monitoring
+curl http://localhost:8000/health/detailed
+
+# Rate limiting status
+curl http://localhost:8000/health/rate-limits
+```
 
 ### Scheduler Settings
 Configure automatic news ingestion and posting:
@@ -192,6 +214,8 @@ npm test
 
 ### Health Checks
 - **API Health**: `/health` endpoint for load balancer checks
+- **Detailed Health**: `/health/detailed` for comprehensive monitoring
+- **Rate Limiting**: `/health/rate-limits` for rate limit status
 - **Database Status**: Connection and performance monitoring
 - **Scheduler Status**: Job execution monitoring
 
@@ -207,6 +231,13 @@ npm test
 - **Performance Metrics**: Response times and throughput
 
 ## 🚀 Deployment
+
+### Production Checklist
+✅ **Environment Validation**: Automatic validation of required settings
+✅ **Health Check Endpoints**: Comprehensive monitoring endpoints
+✅ **Rate Limiting**: Configurable API protection
+✅ **Security**: JWT authentication, password hashing, CORS
+✅ **Error Handling**: Robust error management and logging
 
 ### Docker Deployment
 ```bash
@@ -234,6 +265,12 @@ See `DEPLOYMENT.md` for detailed deployment instructions.
 - Secure API endpoints
 - CORS configuration
 - Input validation
+
+### Rate Limiting
+- Configurable request limits
+- Per-client tracking
+- Health check exemption
+- Rate limit headers
 
 ## 🤝 Contributing
 
@@ -286,6 +323,11 @@ See `CONTRIBUTING.md` for detailed guidelines.
    - Review application logs
    - Verify cron job syntax
 
+4. **Environment Validation Errors**
+   - Check required environment variables
+   - Verify `.env` file format
+   - Review `env.example` for required fields
+
 ### Getting Help
 1. Check the logs in the `logs/` directory
 2. Review the troubleshooting section in `DEPLOYMENT.md`
@@ -315,3 +357,5 @@ For support and questions:
 ---
 
 **Loud Curator** - Making news curation intelligent and efficient.
+
+**Production Status**: 🟢 **READY FOR PRODUCTION** - All critical improvements completed

@@ -9,4 +9,10 @@ pytest
 pytest-cov
 pytest-mock
 feedparser
-schedule 
+schedule
+pydantic
+pydantic-settings
+PyJWT
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart 

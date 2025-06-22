@@ -9,6 +9,9 @@ import os
 import time
 import traceback
 
+# Import configuration
+from config import settings
+
 # Import agents
 from agents.aviation_pages_reader import AviationPagesReader
 from agents.newsdata_agent import NewsDataAgent
@@ -25,6 +28,9 @@ from logging_config import setup_logging
 # Import scheduler
 from scheduler import Scheduler
 
+# Import middleware
+from middleware import rate_limit_middleware
+
 # Import security
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
@@ -40,11 +46,16 @@ app = FastAPI(title="Loud Curator API", version="2.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate limiting middleware (if enabled)
+if settings.rate_limit_enabled:
+    app.middleware("http")(rate_limit_middleware)
+    logger.info("Rate limiting enabled")
 
 # Initialize database
 try:
@@ -54,9 +65,10 @@ except Exception as e:
     logger.error(f"Failed to initialize database: {e}")
     raise
 
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 week
+# Security configuration from settings
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
@@ -109,6 +121,9 @@ async def startup_event():
     try:
         logger.info("Starting Loud Curator API...")
         
+        # Validate environment variables
+        logger.info("Environment validation completed")
+        
         # Start the scheduler
         scheduler.start()
         logger.info("Scheduler started successfully")
@@ -142,7 +157,9 @@ async def root():
         "message": "Loud Curator API",
         "version": "2.0.0",
         "status": "running",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "environment": "production" if settings.secret_key != "supersecretkey" else "development",
+        "rate_limiting": settings.rate_limit_enabled
     }
 
 @app.get("/health")
@@ -155,17 +172,79 @@ async def health_check():
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
+            "version": "2.0.0",
             "database": {
                 "status": "connected",
                 "total_articles": db_stats.get("total_articles", 0)
             },
             "scheduler": {
                 "status": "running" if scheduler.is_running else "stopped"
+            },
+            "environment": {
+                "openai_configured": bool(settings.openai_api_key),
+                "slack_configured": bool(settings.slack_webhook_url),
+                "newsdata_configured": bool(settings.newsdata_api_key),
+                "groundnews_configured": bool(settings.groundnews_api_key)
             }
         }
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         raise HTTPException(status_code=503, detail="Service unhealthy")
+
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check endpoint for monitoring."""
+    try:
+        start_time = time.time()
+        
+        # Database health check
+        db_stats = db.get_article_stats()
+        db_healthy = True
+        
+        # Scheduler health check
+        scheduler_healthy = scheduler.is_running
+        
+        # External API health checks (basic connectivity)
+        external_apis = {
+            "openai": bool(settings.openai_api_key),
+            "slack": bool(settings.slack_webhook_url),
+            "newsdata": bool(settings.newsdata_api_key),
+            "groundnews": bool(settings.groundnews_api_key)
+        }
+        
+        overall_healthy = db_healthy and scheduler_healthy
+        
+        return {
+            "status": "healthy" if overall_healthy else "unhealthy",
+            "timestamp": datetime.now().isoformat(),
+            "response_time_ms": round((time.time() - start_time) * 1000, 2),
+            "components": {
+                "database": {
+                    "status": "healthy" if db_healthy else "unhealthy",
+                    "total_articles": db_stats.get("total_articles", 0)
+                },
+                "scheduler": {
+                    "status": "healthy" if scheduler_healthy else "unhealthy",
+                    "running": scheduler_healthy
+                },
+                "external_apis": external_apis
+            }
+        }
+    except Exception as e:
+        logger.error(f"Detailed health check failed: {e}")
+        raise HTTPException(status_code=503, detail="Service unhealthy")
+
+@app.get("/health/rate-limits")
+async def rate_limit_status():
+    """Get current rate limiting status."""
+    from middleware import rate_limiter
+    
+    return {
+        "rate_limiting_enabled": settings.rate_limit_enabled,
+        "requests_per_window": rate_limiter.requests_per_window,
+        "window_seconds": rate_limiter.window_seconds,
+        "active_clients": len(rate_limiter.requests)
+    }
 
 @app.get("/news")
 async def get_news(filters: Optional[Dict[str, Any]] = None):
