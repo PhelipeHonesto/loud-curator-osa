@@ -433,11 +433,10 @@ class TestIntegration:
                     with patch('agents.newsdata_agent.fetch_newsdata_news', return_value=[]):
                         with patch('agents.institutional_reader.fetch_institutional_news', return_value=[]):
                             with patch('agents.groundnews_agent.fetch_groundnews_articles', return_value=[]):
-                                with patch('database.get_all_news', return_value=[]):
-                                    with patch('database.save_all_news'):
-                                        result = ingest_news()
-                                        
-                                        assert "Successfully ingested" in result["message"]
+                                with patch('main.db.save_all_articles', return_value=True):
+                                    result = ingest_news()
+
+                                    assert "Successfully ingested" in result["message"]
     
     def test_scheduler_integration(self):
         """Test scheduler integration with main application."""

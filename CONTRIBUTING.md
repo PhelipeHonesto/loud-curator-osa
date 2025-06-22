@@ -81,7 +81,7 @@ loud-curator-osa/
 │   │   ├── institutional_reader.py
 │   │   └── groundnews_agent.py
 │   ├── main.py             # FastAPI application
-│   ├── database.py         # Data persistence
+│   ├── database_sqlite.py  # Data persistence
 │   └── requirements.txt
 ├── frontend/               # React/Vite frontend
 │   ├── src/
