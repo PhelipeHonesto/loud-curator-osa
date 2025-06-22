@@ -15,5 +15,7 @@ pydantic-settings
 PyJWT
 python-jose[cryptography]
 passlib[bcrypt]
-python-multipart 
+python-multipart
 watchdog==4.0.1
+apscheduler==3.10.4
+sqlalchemy

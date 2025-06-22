@@ -82,3 +82,6 @@ def fetch_skywest_news():
     except Exception as e:
         print(f"Error parsing SkyWest news content: {e}")
         return []
+
+# Singleton instance of the agent
+aviation_reader_agent = AviationPagesReader()

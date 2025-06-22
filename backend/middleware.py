@@ -4,6 +4,7 @@ import time
 from typing import Dict, Tuple
 from collections import defaultdict
 import logging
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -83,4 +84,20 @@ async def rate_limit_middleware(request: Request, call_next):
     response.headers["X-RateLimit-Remaining"] = str(remaining)
     response.headers["X-RateLimit-Reset"] = str(int(time.time() + rate_limiter.window_seconds))
     
-    return response 
+    return response
+
+class LoggingMiddleware(BaseHTTPMiddleware):
+    """Middleware to log incoming requests, responses, and processing time."""
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        
+        response = await call_next(request)
+        
+        process_time = (time.time() - start_time) * 1000
+        
+        logger.info(
+            f"Request: {request.method} {request.url.path} "
+            f"Completed with: {response.status_code} in {process_time:.2f}ms"
+        )
+        
+        return response 

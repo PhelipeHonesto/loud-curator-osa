@@ -74,3 +74,6 @@ def fetch_newsdata_news():
         )
 
     return articles
+
+# Singleton instance of the agent
+newsdata_agent = NewsDataAgent()

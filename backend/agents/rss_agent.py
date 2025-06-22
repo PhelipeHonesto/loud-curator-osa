@@ -1,297 +1,138 @@
-import os
+import asyncio
+import logging
+import re
 import uuid
 from datetime import datetime
-from pathlib import Path
 from typing import List, Dict, Any, Optional
 import feedparser
-import requests
-from urllib.parse import urlparse
-import re
+import httpx
 
-# Common aviation and news RSS feeds
-DEFAULT_RSS_FEEDS = {
-    "Aviation Week": "https://aviationweek.com/rss.xml",
-    "Flight Global": "https://www.flightglobal.com/rss",
-    "AIN Online": "https://www.ainonline.com/rss.xml",
-    "Aviation International News": "https://www.ainonline.com/rss.xml",
-    "Simple Flying": "https://simpleflying.com/feed/",
-    "The Points Guy": "https://thepointsguy.com/feed/",
-    "Cranky Flier": "https://crankyflier.com/feed/",
-    "Aviation Safety Network": "https://aviation-safety.net/rss/rss.php",
-    "Flying Magazine": "https://www.flyingmag.com/feed/",
-    "Pilot Magazine": "https://www.pilotweb.aero/rss.xml"
-}
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class RSSAgent:
-    """Agent for fetching news from multiple RSS feeds."""
-    def __init__(self, feed_configs: Optional[Dict[str, str]] = None):
-        self.feed_configs = feed_configs or DEFAULT_RSS_FEEDS
+    """Agent for fetching and parsing news from multiple RSS feeds."""
 
-    async def fetch_articles(self) -> List[Dict[str, Any]]:
-        """Fetch articles from all configured RSS feeds."""
-        return fetch_multiple_rss_feeds(self.feed_configs)
-
-
-def fetch_rss_feed(feed_url: str, source_name: Optional[str] = None) -> List[Dict[str, Any]]:
-    """
-    Fetches articles from a single RSS feed.
-    
-    Args:
-        feed_url: URL of the RSS feed
-        source_name: Custom name for the source (optional)
-    
-    Returns:
-        List of article dictionaries
-    """
-    try:
-        # Parse the RSS feed
-        feed = feedparser.parse(feed_url)
-        
-        if feed.bozo:
-            print(f"Warning: RSS feed {feed_url} has parsing issues")
-        
-        articles = []
-        
-        for entry in feed.entries[:20]:  # Limit to 20 articles per feed
-            # Extract and clean the content
-            content = extract_content(entry)
-            
-            # Parse the date
-            published_date = parse_date(entry)
-            
-            # Create article object
-            article = {
-                "id": str(uuid.uuid4()),
-                "title": clean_text(entry.get('title', '')),
-                "date": published_date.isoformat(),
-                "body": content,
-                "link": entry.get('link', ''),
-                "source": source_name or feed.feed.get('title', 'RSS Feed'),
-                "status": "new",
-                "feed_url": feed_url,
-                "author": entry.get('author', ''),
-                "category": extract_categories(entry)
-            }
-            
-            # Only add articles with valid title and link
-            if article["title"] and article["link"]:
-                articles.append(article)
-        
-        print(f"Fetched {len(articles)} articles from {source_name or feed_url}")
-        return articles
-        
-    except Exception as e:
-        print(f"Error fetching RSS feed {feed_url}: {e}")
-        return []
-
-
-def fetch_multiple_rss_feeds(feed_configs: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
-    """
-    Fetches articles from multiple RSS feeds.
-    
-    Args:
-        feed_configs: Dictionary of source_name -> feed_url mappings
-    
-    Returns:
-        Combined list of articles from all feeds
-    """
-    if feed_configs is None:
-        feed_configs = DEFAULT_RSS_FEEDS
-    
-    all_articles = []
-    
-    for source_name, feed_url in feed_configs.items():
-        try:
-            articles = fetch_rss_feed(feed_url, source_name)
-            all_articles.extend(articles)
-        except Exception as e:
-            print(f"Error processing RSS feed {source_name}: {e}")
-            continue
-    
-    print(f"Total RSS articles fetched: {len(all_articles)}")
-    return all_articles
-
-
-def fetch_custom_rss_feeds(feed_urls: List[str]) -> List[Dict[str, Any]]:
-    """
-    Fetches articles from a list of custom RSS feed URLs.
-    
-    Args:
-        feed_urls: List of RSS feed URLs
-    
-    Returns:
-        List of articles from all feeds
-    """
-    all_articles = []
-    
-    for feed_url in feed_urls:
-        try:
-            # Extract domain name as source
-            domain = urlparse(feed_url).netloc
-            source_name = domain.replace('www.', '').replace('.com', '').title()
-            
-            articles = fetch_rss_feed(feed_url, source_name)
-            all_articles.extend(articles)
-        except Exception as e:
-            print(f"Error processing custom RSS feed {feed_url}: {e}")
-            continue
-    
-    return all_articles
-
-
-def extract_content(entry) -> str:
-    """
-    Extracts and cleans content from an RSS entry.
-    """
-    # Try different content fields
-    content_fields = ['content', 'summary', 'description']
-    
-    for field in content_fields:
-        if hasattr(entry, field):
-            content = getattr(entry, field)
-            if isinstance(content, list) and content:
-                content = content[0].get('value', '')
-            elif isinstance(content, str):
-                content = content
-            else:
-                content = str(content) if content else ''
-            
-            if content:
-                # Remove HTML tags
-                content = re.sub(r'<[^>]+>', '', content)
-                # Clean up whitespace
-                content = re.sub(r'\s+', ' ', content).strip()
-                return content[:1000]  # Limit content length
-    
-    return ""
-
-
-def parse_date(entry) -> datetime:
-    """
-    Parses the publication date from an RSS entry.
-    """
-    date_fields = ['published_parsed', 'updated_parsed', 'created_parsed']
-    
-    for field in date_fields:
-        if hasattr(entry, field):
-            parsed_date = getattr(entry, field)
-            if parsed_date:
-                try:
-                    return datetime(*parsed_date[:6])
-                except (ValueError, TypeError):
-                    continue
-    
-    # Fallback to current time
-    return datetime.now()
-
-
-def clean_text(text: str) -> str:
-    """
-    Cleans and normalizes text content.
-    """
-    if not text:
-        return ""
-
-    # Remove HTML entities
-    text = re.sub(r'&[a-zA-Z]+;', '', text)
-
-    # If the result is only whitespace, preserve it (used in tests)
-    if not text.strip():
-        return text
-
-    # Normalize whitespace and trim
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
-
-
-def extract_categories(entry) -> List[str]:
-    """
-    Extracts categories/tags from an RSS entry.
-    """
-    categories = []
-    
-    # Try different category fields
-    if hasattr(entry, 'tags') and entry.tags:
-        try:
-            categories.extend([tag.term for tag in entry.tags])
-        except TypeError:
-            pass
-    
-    if hasattr(entry, 'category') and entry.category:
-        categories.append(entry.category)
-    
-    return categories
-
-
-def fetch_aviation_rss_feeds() -> List[Dict[str, Any]]:
-    """
-    Fetches articles from aviation-specific RSS feeds.
-    """
-    aviation_feeds = {
+    DEFAULT_FEEDS = {
         "Aviation Week": "https://aviationweek.com/rss.xml",
         "Flight Global": "https://www.flightglobal.com/rss",
+        "AIN Online": "https://www.ainonline.com/rss.xml",
         "Simple Flying": "https://simpleflying.com/feed/",
-        "Flying Magazine": "https://www.flyingmag.com/feed/"
     }
-    
-    return fetch_multiple_rss_feeds(aviation_feeds)
 
+    def __init__(self, feed_configs: Optional[Dict[str, str]] = None):
+        self.feeds = feed_configs or self.DEFAULT_FEEDS
+        self.user_agent = "LoudCurator/1.0"
 
-def fetch_business_rss_feeds() -> List[Dict[str, Any]]:
-    """
-    Fetches articles from business news RSS feeds that might contain aviation content.
-    """
-    business_feeds = {
-        "Reuters Business": "https://feeds.reuters.com/reuters/businessNews",
-        "Bloomberg": "https://feeds.bloomberg.com/markets/news.rss",
-        "CNBC": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
-        "MarketWatch": "https://feeds.marketwatch.com/marketwatch/topstories/"
-    }
-    
-    return fetch_multiple_rss_feeds(business_feeds)
+    async def fetch_articles(self) -> List[Dict[str, Any]]:
+        """Fetch and parse articles from all configured RSS feeds concurrently."""
+        async with httpx.AsyncClient(
+            headers={"User-Agent": self.user_agent}, follow_redirects=True
+        ) as client:
+            tasks = [
+                self._fetch_one_feed(client, source_name, url)
+                for source_name, url in self.feeds.items()
+            ]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
 
-
-def validate_rss_feed(feed_url: str) -> bool:
-    """
-    Validates if a URL is a valid RSS feed.
-    
-    Args:
-        feed_url: URL to validate
-    
-    Returns:
-        True if valid RSS feed, False otherwise
-    """
-    try:
-        feed = feedparser.parse(feed_url)
-        return len(feed.entries) > 0
-    except Exception:
-        return False
-
-
-def get_feed_info(feed_url: str) -> Dict[str, Any]:
-    """
-    Gets information about an RSS feed.
-    
-    Args:
-        feed_url: URL of the RSS feed
-    
-    Returns:
-        Dictionary with feed information
-    """
-    try:
-        feed = feedparser.parse(feed_url)
+        all_articles = []
+        for result in results:
+            if isinstance(result, list):
+                all_articles.extend(result)
+            elif isinstance(result, Exception):
+                logger.error(f"Error fetching RSS feed: {result}", exc_info=True)
         
+        logger.info(f"Total RSS articles fetched: {len(all_articles)}")
+        return all_articles
+
+    async def _fetch_one_feed(self, client: httpx.AsyncClient, source_name: str, url: str) -> List[Dict[str, Any]]:
+        """Fetch and parse a single RSS feed."""
+        try:
+            response = await client.get(url, timeout=15.0)
+            response.raise_for_status()
+            
+            feed_content = response.text
+            parsed_feed = feedparser.parse(feed_content)
+
+            if parsed_feed.bozo:
+                bozo_exception = parsed_feed.bozo_exception
+                logger.warning(f"Feed at {url} is not well-formed: {bozo_exception}")
+
+            return [
+                self._parse_entry(entry, source_name, url)
+                for entry in parsed_feed.entries[:20] # Limit to 20 entries per feed
+            ]
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error for {url}: {e.response.status_code} - {e.request.url}")
+        except httpx.RequestError as e:
+            logger.error(f"Request error for {url}: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error processing feed {url}: {e}", exc_info=True)
+        
+        return []
+
+    def _parse_entry(self, entry: Dict[str, Any], source_name: str, feed_url: str) -> Dict[str, Any]:
+        """Parse a single feed entry into a standardized article dictionary."""
+        title = self._get_field_as_str(entry, "title")
+        link = self._get_field_as_str(entry, "link")
+        
+        published_date = self._parse_date(entry)
+        content = self._extract_content(entry)
+
         return {
-            "title": feed.feed.get('title', ''),
-            "description": feed.feed.get('description', ''),
-            "link": feed.feed.get('link', ''),
-            "language": feed.feed.get('language', ''),
-            "entry_count": len(feed.entries),
-            "last_updated": feed.feed.get('updated', ''),
-            "is_valid": len(feed.entries) > 0
+            "id": str(uuid.uuid4()),
+            "title": self._clean_text(title),
+            "date": published_date.isoformat(),
+            "body": self._clean_text(content),
+            "link": link,
+            "source": source_name,
+            "status": "new",
+            "feed_url": feed_url,
+            "author": self._get_field_as_str(entry, "author"),
         }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "is_valid": False
-        } 
+
+    def _get_field_as_str(self, entry: Dict[str, Any], field: str) -> str:
+        """Safely retrieve a field from an entry as a string."""
+        value = entry.get(field, "")
+        if isinstance(value, str):
+            return value
+        if isinstance(value, dict):
+             return value.get('value', '')
+        if isinstance(value, list) and value:
+            return str(value[0])
+        return str(value) if value is not None else ""
+
+    def _parse_date(self, entry: Dict[str, Any]) -> datetime:
+        """Parse the publication date from an entry, with fallbacks."""
+        date_fields = ['published_parsed', 'updated_parsed', 'created_parsed']
+        for field in date_fields:
+            if field in entry and entry[field]:
+                try:
+                    return datetime(*entry[field][:6])
+                except (ValueError, TypeError):
+                    continue
+        return datetime.now()
+
+    def _extract_content(self, entry: Dict[str, Any]) -> str:
+        """Extract and clean main content from an entry."""
+        content_fields = ['content', 'summary', 'description']
+        for field in content_fields:
+            if field in entry:
+                value = entry[field]
+                if isinstance(value, list) and value:
+                    return value[0].get('value', '')
+                if isinstance(value, str):
+                    return value
+        return ""
+
+    def _clean_text(self, text: str) -> str:
+        """Remove HTML tags and normalize whitespace."""
+        if not text:
+            return ""
+        text = re.sub(r'<[^>]+>', '', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
+# Singleton instance for the application to use
+rss_agent = RSSAgent() 
