@@ -48,3 +48,7 @@ dist/
 backend/news.db
 backend/news.json.backup
 backend/logs/
+
+# Additional generated files
+backend/scheduler.log
+logs/
