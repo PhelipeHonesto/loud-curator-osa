@@ -298,10 +298,86 @@ body {
   transform: translateY(-1px);
 }
 
+.remix-btn {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+}
+
+.remix-btn:hover {
+  background: linear-gradient(135deg, #f7931e, #ff6b35);
+  transform: translateY(-1px);
+}
+
+.score-btn {
+  background: linear-gradient(135deg, #6f42c1, #8e44ad);
+  color: white;
+}
+
+.score-btn:hover {
+  background: linear-gradient(135deg, #8e44ad, #6f42c1);
+  transform: translateY(-1px);
+}
+
 .action-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Custom title indicator */
+.custom-title-indicator {
+  color: #ff6b35;
+  font-size: 1.2rem;
+  margin-left: 0.5rem;
+}
+
+/* Scoring preview styles */
+.scoring-preview {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(14, 42, 82, 0.5);
+  border-radius: 8px;
+  border: 1px solid #1e3a72;
+}
+
+.scoring-scores {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.score-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.priority-indicator {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+  margin-right: 8px;
+}
+
+.target-channels {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.channel-indicator {
+  font-size: 1rem;
+  padding: 2px;
+  border-radius: 4px;
+  background: rgba(241, 117, 0, 0.2);
+  border: 1px solid rgba(241, 117, 0, 0.3);
 }
 
 /* Responsive Design */

@@ -102,3 +102,59 @@ export const postToSlackFigma = async (storyId: string) => {
   });
   return handleResponse(response);
 };
+
+// Headline remix functions
+export const remixHeadline = async (articleId: string) => {
+  const response = await fetch(`${API_BASE_URL}/headline/remix/${articleId}`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
+
+export const saveCustomTitle = async (articleId: string, customTitle: string) => {
+  const response = await fetch(`${API_BASE_URL}/headline/save/${articleId}`, { 
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ custom_title: customTitle }),
+  });
+  return handleResponse(response);
+};
+
+export const analyzeHeadline = async (articleId: string) => {
+  const response = await fetch(`${API_BASE_URL}/headline/analyze/${articleId}`, { 
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
+
+// Article scoring functions
+export const scoreArticle = async (articleId: string) => {
+  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/score`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
+
+export const updateArticleScores = async (articleId: string, scores: { score_relevance?: number; score_vibe?: number; score_viral?: number }) => {
+  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/scores`, { 
+    method: 'PUT',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(scores),
+  });
+  return handleResponse(response);
+};
+
+export const getArticleDistribution = async (articleId: string) => {
+  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/distribution`, { 
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
