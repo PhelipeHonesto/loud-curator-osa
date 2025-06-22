@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import ArticleCard from '../components/ArticleCard';
+import HeadlineRemixModal from '../components/HeadlineRemixModal';
 import * as api from '../services/api';
 import type { Article } from '../types';
 import './Feed.css';
@@ -43,6 +44,13 @@ const Feed = () => {
   // Tracks the ID of the article currently being processed by an action,
   // or a general status like 'loading_feed' or 'ingesting'.
   const [actingArticleId, setActingArticleId] = useState<string | null>(null);
+
+  // Headline remix modal state
+  const [remixModalOpen, setRemixModalOpen] = useState(false);
+  const [remixArticleId, setRemixArticleId] = useState<string | null>(null);
+  const [remixArticleTitle, setRemixArticleTitle] = useState<string>('');
+  const [remixOptions, setRemixOptions] = useState<string[]>([]);
+  const [isRemixing, setIsRemixing] = useState(false);
 
   /**
    * Fetches all news from the API and updates the component's state.
@@ -133,7 +141,12 @@ const Feed = () => {
    * @param action The type of action to perform.
    * @param storyId The ID of the target article.
    */
-  const handleAction = async (action: 'select' | 'edit' | 'post' | 'post-figma', storyId: string) => {
+  const handleAction = async (action: 'select' | 'edit' | 'post' | 'post-figma' | 'remix', storyId: string) => {
+    if (action === 'remix') {
+      handleRemixAction(storyId);
+      return;
+    }
+
     setActingArticleId(storyId);
     setMessage(null);
     setError(null);
@@ -187,6 +200,56 @@ const Feed = () => {
       setActingArticleId(null);
       // Clear the message after a few seconds
       setTimeout(() => setMessage(null), 5000);
+    }
+  };
+
+  /**
+   * Handles the headline remix action.
+   * @param storyId The ID of the target article.
+   */
+  const handleRemixAction = async (storyId: string) => {
+    const article = articles.find(a => a.id === storyId);
+    if (!article) return;
+
+    setRemixArticleId(storyId);
+    setRemixArticleTitle(article.title);
+    setRemixModalOpen(true);
+    setIsRemixing(true);
+    setRemixOptions([]);
+
+    try {
+      const response = await api.remixHeadline(storyId);
+      setRemixOptions(response.remixes);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to generate headline remixes.';
+      setError(errorMessage);
+      setRemixModalOpen(false);
+    } finally {
+      setIsRemixing(false);
+    }
+  };
+
+  /**
+   * Handles saving a custom title for an article.
+   * @param customTitle The selected custom title.
+   */
+  const handleSaveCustomTitle = async (customTitle: string) => {
+    if (!remixArticleId) return;
+
+    setIsRemixing(true);
+    try {
+      await api.saveCustomTitle(remixArticleId, customTitle);
+      
+      // Update the article in local state
+      updateArticleInState(remixArticleId, { custom_title: customTitle });
+      
+      setMessage('Custom title saved successfully!');
+      setRemixModalOpen(false);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to save custom title.';
+      setError(errorMessage);
+    } finally {
+      setIsRemixing(false);
     }
   };
 
@@ -539,6 +602,16 @@ const Feed = () => {
           )}
         </div>
       )}
+      
+      {/* Headline Remix Modal */}
+      <HeadlineRemixModal
+        isOpen={remixModalOpen}
+        onClose={() => setRemixModalOpen(false)}
+        originalTitle={remixArticleTitle}
+        remixes={remixOptions}
+        onSelectHeadline={handleSaveCustomTitle}
+        isLoading={isRemixing}
+      />
     </div>
   );
 };

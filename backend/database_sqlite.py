@@ -31,6 +31,8 @@ class SQLiteDatabase:
                         source TEXT,
                         date TEXT,
                         status TEXT DEFAULT 'new',
+                        tone TEXT DEFAULT 'dry',
+                        custom_title TEXT,
                         author TEXT,
                         category TEXT,
                         feed_url TEXT,
@@ -80,8 +82,8 @@ class SQLiteDatabase:
                 
                 cursor.execute('''
                     INSERT OR REPLACE INTO articles 
-                    (id, title, body, link, source, date, status, author, category, feed_url, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, title, body, link, source, date, status, tone, custom_title, author, category, feed_url, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     article.get('id'),
                     article.get('title'),
@@ -90,6 +92,8 @@ class SQLiteDatabase:
                     article.get('source'),
                     article.get('date'),
                     article.get('status', 'new'),
+                    article.get('tone', 'dry'),
+                    article.get('custom_title'),
                     article.get('author'),
                     json.dumps(article.get('category', [])),
                     article.get('feed_url'),
@@ -112,8 +116,8 @@ class SQLiteDatabase:
                 for article in articles:
                     cursor.execute('''
                         INSERT OR REPLACE INTO articles 
-                        (id, title, body, link, source, date, status, author, category, feed_url, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        (id, title, body, link, source, date, status, tone, custom_title, author, category, feed_url, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         article.get('id'),
                         article.get('title'),
@@ -122,6 +126,8 @@ class SQLiteDatabase:
                         article.get('source'),
                         article.get('date'),
                         article.get('status', 'new'),
+                        article.get('tone', 'dry'),
+                        article.get('custom_title'),
                         article.get('author'),
                         json.dumps(article.get('category', [])),
                         article.get('feed_url'),

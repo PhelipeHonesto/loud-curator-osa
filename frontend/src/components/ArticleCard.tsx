@@ -1,6 +1,6 @@
 import type { Article } from '../types';
 
-type ActionType = 'select' | 'edit' | 'post' | 'post-figma';
+type ActionType = 'select' | 'edit' | 'post' | 'post-figma' | 'remix';
 
 interface ArticleCardProps {
     article: Article;
@@ -29,6 +29,9 @@ const ArticleCard = ({ article, onAction, isLoading }: ArticleCardProps) => {
         year: 'numeric'
     });
 
+    // Display custom title if available, otherwise show original title
+    const displayTitle = article.custom_title || article.title;
+
     return (
         <div className="article-card">
             {/* Top Section */}
@@ -44,7 +47,12 @@ const ArticleCard = ({ article, onAction, isLoading }: ArticleCardProps) => {
 
             {/* Middle Section */}
             <div className="card-middle">
-                <h2 className="article-title">{article.title}</h2>
+                <h2 className="article-title">
+                    {displayTitle}
+                    {article.custom_title && (
+                        <span className="custom-title-indicator"> ✨</span>
+                    )}
+                </h2>
                 <p className="article-summary">
                     {article.body
                         ? (article.body.length > 200 ? `${article.body.substring(0, 200)}...` : article.body)
@@ -66,6 +74,15 @@ const ArticleCard = ({ article, onAction, isLoading }: ArticleCardProps) => {
                     </a>
                     
                     <div className="action-buttons">
+                        {/* Remix button - always available */}
+                        <button 
+                            onClick={() => onAction('remix', article.id)}
+                            disabled={isLoading}
+                            className="action-btn remix-btn"
+                        >
+                            {isLoading ? 'Remixing...' : '🎛️ Remix Headline'}
+                        </button>
+
                         {article.status === 'new' && (
                             <button 
                                 onClick={() => onAction('select', article.id)}

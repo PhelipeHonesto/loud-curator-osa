@@ -18,6 +18,7 @@ from agents.newsdata_agent import NewsDataAgent
 from agents.groundnews_agent import GroundNewsAgent
 from agents.institutional_reader import InstitutionalReader
 from agents.rss_agent import RSSAgent
+from agents.headline_remixer import remix_headline, analyze_headline_style
 
 # Import database
 from database_sqlite import init_database, get_database
@@ -704,6 +705,75 @@ def login(form: OAuth2PasswordRequestForm = Depends()):
 @app.get("/auth/me")
 def get_me(current_user: dict = Depends(get_current_user)):
     return {"username": current_user["username"], "email": current_user.get("email")}
+
+# Headline remix endpoints
+@app.post("/headline/remix/{article_id}")
+async def remix_headline_endpoint(article_id: str):
+    """Generate 3 creative Loud Hawk-style headline variations for an article."""
+    try:
+        # Get the article
+        article = db.get_article_by_id(article_id)
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+        
+        # Generate remixes
+        remixes = remix_headline(article["title"], article.get("body", ""))
+        
+        logger.info(f"Generated {len(remixes)} headline remixes for article {article_id}")
+        return {"remixes": remixes, "original_title": article["title"]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating headline remixes for article {article_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate headline remixes")
+
+@app.post("/headline/save/{article_id}")
+async def save_custom_title(article_id: str, custom_title: Dict[str, str]):
+    """Save a custom title for an article."""
+    try:
+        # Get the article
+        article = db.get_article_by_id(article_id)
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+        
+        new_title = custom_title.get("custom_title")
+        if not new_title:
+            raise HTTPException(status_code=400, detail="Custom title is required")
+        
+        # Update the article with custom title
+        article["custom_title"] = new_title
+        db.save_article(article)
+        
+        logger.info(f"Saved custom title for article {article_id}: {new_title}")
+        return {"message": "Custom title saved successfully", "custom_title": new_title}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving custom title for article {article_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save custom title")
+
+@app.get("/headline/analyze/{article_id}")
+async def analyze_headline_endpoint(article_id: str):
+    """Analyze the style of an article's headline."""
+    try:
+        # Get the article
+        article = db.get_article_by_id(article_id)
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+        
+        # Analyze the headline style
+        style = analyze_headline_style(article["title"])
+        
+        logger.info(f"Analyzed headline style for article {article_id}: {style}")
+        return {"style": style, "title": article["title"]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing headline for article {article_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to analyze headline")
 
 # Error handlers
 @app.exception_handler(Exception)

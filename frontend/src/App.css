@@ -298,10 +298,27 @@ body {
   transform: translateY(-1px);
 }
 
+.remix-btn {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+}
+
+.remix-btn:hover {
+  background: linear-gradient(135deg, #f7931e, #ff6b35);
+  transform: translateY(-1px);
+}
+
 .action-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Custom title indicator */
+.custom-title-indicator {
+  color: #ff6b35;
+  font-size: 1.2rem;
+  margin-left: 0.5rem;
 }
 
 /* Responsive Design */
