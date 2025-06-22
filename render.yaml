@@ -21,4 +21,16 @@ services:
       - key: SECRET_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://loud-curator-app.onrender.com 
+        value: https://loud-curator-app.onrender.com
+
+  # React Frontend
+  - type: web
+    name: loud-curator-app
+    env: static
+    plan: free
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: "./frontend/dist"
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        value: https://loud-curator-api.onrender.com 
