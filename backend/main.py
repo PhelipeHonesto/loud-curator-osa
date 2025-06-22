@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 import os
 import time
 import traceback
+import asyncio
 
 # Import configuration
 from config import settings
@@ -112,13 +113,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     # except JWTError:
     #     raise HTTPException(status_code=401, detail="Invalid token")
 
-def dummy_ingest_callback():
-    # This is a placeholder for the scheduler's ingest callback
-    logger.info("Dummy ingest callback invoked.")
-    return True
-
-# Initialize scheduler with required callback
-scheduler = Scheduler(ingest_callback=dummy_ingest_callback)
+# Initialize scheduler with the actual ingestion callback
+scheduler = Scheduler(ingest_callback=lambda: asyncio.create_task(run_ingestion()))
 
 # Initialize agents
 aviation_reader = AviationPagesReader()
@@ -139,6 +135,10 @@ async def startup_event():
         # Start the scheduler
         scheduler.start()
         logger.info("Scheduler started successfully")
+        
+        # Initial news ingestion on startup
+        logger.info("Triggering initial news ingestion on startup...")
+        asyncio.create_task(run_ingestion())
         
         # Log startup completion
         logger.info("Loud Curator API started successfully")
@@ -351,60 +351,63 @@ async def delete_article(article_id: str):
 async def ingest_news(background_tasks: BackgroundTasks):
     """Ingest news from all sources."""
     try:
-        start_time = time.time()
         logger.info("Starting news ingestion...")
-        
-        # Run ingestion in background
         background_tasks.add_task(run_ingestion)
-        
         return {
             "message": "News ingestion started",
             "timestamp": datetime.now().isoformat()
         }
-        
     except Exception as e:
         logger.error(f"Error starting ingestion: {e}")
         raise HTTPException(status_code=500, detail="Failed to start ingestion")
 
 async def run_ingestion():
-    """Run the news ingestion process."""
+    """Run all news ingestion agents."""
+    logger.info("Starting news ingestion run...")
+    start_time = time.time()
+    
+    all_new_articles = []
+    
     try:
-        start_time = time.time()
-        all_articles = []
+        # RSS Agent (always runs)
+        logger.info("Running RSS Agent...")
+        rss_articles = await rss_agent.fetch_articles()
+        all_new_articles.extend(rss_articles)
+        logger.info(f"RSS Agent found {len(rss_articles)} new articles.")
+
+        # Conditional agents based on API key availability
+        if settings.NEWSDATA_API_KEY:
+            logger.info("Running NewsData Agent...")
+            newsdata_articles = await newsdata_agent.fetch_articles()
+            all_new_articles.extend(newsdata_articles)
+            logger.info(f"NewsData Agent found {len(newsdata_articles)} new articles.")
+        else:
+            logger.warning("Skipping NewsData Agent: API key not configured.")
+
+        if settings.GROUNDNEWS_API_KEY:
+            logger.info("Running GroundNews Agent...")
+            groundnews_articles = await groundnews_agent.fetch_articles()
+            all_new_articles.extend(groundnews_articles)
+            logger.info(f"GroundNews Agent found {len(groundnews_articles)} new articles.")
+        else:
+            logger.warning("Skipping GroundNews Agent: API key not configured.")
+
+        # Institutional and Aviation Readers (always run)
+        logger.info("Running Institutional Reader...")
+        institutional_articles = await institutional_reader.fetch_articles()
+        all_new_articles.extend(institutional_articles)
+        logger.info(f"Institutional Reader found {len(institutional_articles)} new articles.")
+
+        logger.info("Running Aviation Pages Reader...")
+        aviation_articles = await aviation_reader.fetch_articles()
+        all_new_articles.extend(aviation_articles)
+        logger.info(f"Aviation Pages Reader found {len(aviation_articles)} new articles.")
         
-        # Collect articles from all sources
-        sources = [
-            ("Aviation Pages", aviation_reader.fetch_articles),
-            ("NewsData", newsdata_agent.fetch_articles),
-            ("Ground News", groundnews_agent.fetch_articles),
-            ("Institutional", institutional_reader.fetch_articles),
-            ("RSS Feeds", rss_agent.fetch_articles)
-        ]
-        
-        for source_name, fetch_func in sources:
-            try:
-                logger.info(f"Fetching articles from {source_name}...")
-                articles = await fetch_func()
-                
-                if articles:
-                    # Add source information
-                    for article in articles:
-                        article['source'] = source_name
-                        article['feed_url'] = getattr(fetch_func, 'feed_url', None)
-                    
-                    all_articles.extend(articles)
-                    logger.info(f"Fetched {len(articles)} articles from {source_name}")
-                else:
-                    logger.warning(f"No articles fetched from {source_name}")
-                    
-            except Exception as e:
-                logger.error(f"Error fetching from {source_name}: {e}")
-                continue
-        
-        if all_articles:
+        # Deduplicate and save new articles
+        if all_new_articles:
             # Deduplicate articles
-            unique_articles = deduplicate_articles(all_articles)
-            logger.info(f"Deduplicated {len(all_articles)} articles to {len(unique_articles)} unique articles")
+            unique_articles = deduplicate_articles(all_new_articles)
+            logger.info(f"Deduplicated {len(all_new_articles)} articles to {len(unique_articles)} unique articles")
             
             # Score articles for Loud Hawk distribution
             logger.info("Scoring articles for distribution...")

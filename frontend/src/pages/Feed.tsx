@@ -140,7 +140,6 @@ const Feed = () => {
     try {
       const response = await api.ingestNews();
       setMessage(response.message);
-      loadNews(); // Refresh the feed to get new articles
     } catch (err: any) {
       const errorMessage = err.message || 'An unknown error occurred during ingestion.';
       if (errorMessage.includes('Failed to fetch')) {
@@ -151,6 +150,7 @@ const Feed = () => {
     } finally {
       setActingArticleId(null);
       setTimeout(() => setMessage(null), 5000);
+      loadNews(); // Always refresh the feed after ingestion attempt
     }
   };
 
