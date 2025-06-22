@@ -191,7 +191,7 @@ def clean_text(text: str) -> str:
     """
     if not text:
         return ""
-    
+
     # Remove HTML entities
     text = re.sub(r'&[a-zA-Z]+;', '', text)
 
