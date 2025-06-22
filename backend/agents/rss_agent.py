@@ -191,13 +191,15 @@ def clean_text(text: str) -> str:
     """
     if not text:
         return ""
-    
+
     # Remove HTML entities
     text = re.sub(r'&[a-zA-Z]+;', '', text)
 
-    if text.strip() == "":
+    # If the result is only whitespace, preserve it (used in tests)
+    if not text.strip():
         return text
 
+    # Normalize whitespace and trim
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
