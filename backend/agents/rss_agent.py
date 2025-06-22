@@ -194,7 +194,10 @@ def clean_text(text: str) -> str:
     
     # Remove HTML entities
     text = re.sub(r'&[a-zA-Z]+;', '', text)
-    # Remove extra whitespace
+
+    if text.strip() == "":
+        return text
+
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
@@ -207,7 +210,10 @@ def extract_categories(entry) -> List[str]:
     
     # Try different category fields
     if hasattr(entry, 'tags') and entry.tags:
-        categories.extend([tag.term for tag in entry.tags])
+        try:
+            categories.extend([tag.term for tag in entry.tags])
+        except TypeError:
+            pass
     
     if hasattr(entry, 'category') and entry.category:
         categories.append(entry.category)

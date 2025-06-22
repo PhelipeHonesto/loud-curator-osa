@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 import asyncio
 
 import requests
-from bs4 import BeautifulSoup
+import re
 
 
 class AviationPagesReader:
@@ -41,42 +41,42 @@ def fetch_skywest_news():
         return []
 
     try:
-        soup = BeautifulSoup(response.content, "lxml")
+        html = response.content
+        if isinstance(html, bytes):
+            html = html.decode("utf-8", errors="ignore")
+        pattern = re.compile(
+            r'<div class="news-release-item">.*?<h4>\s*<a href="(?P<link>[^"]+)">(?P<title>[^<]+)</a>.*?'
+            r'<div class="news-release-date">(?P<date>[^<]+)</div>',
+            re.S,
+        )
+
         articles = []
+        count = 0
+        for match in pattern.finditer(html):
+            title = match.group("title").strip()
+            relative_link = match.group("link")
+            link = urljoin(URL, relative_link)
+            date_str = match.group("date").strip()
+            try:
+                parsed_date = datetime.strptime(date_str, "%m/%d/%Y")
+            except ValueError:
+                parsed_date = datetime.now()
 
-        # The news items are in a 'div' with class 'news-release-item'
-        for item in soup.select("div.news-release-item", limit=15):
-            # Select the 'a' tag directly to avoid intermediate access that confuses the linter
-            link_element = item.select_one("h4 > a")
-            date_element = item.find("div", class_="news-release-date")
-
-            if link_element and date_element:
-                title = link_element.get_text(strip=True)
-                relative_link = link_element.get("href")
-                if not isinstance(relative_link, str):
-                    continue
-                link = urljoin(URL, relative_link)
-
-                body = ""
-
-                date_str = date_element.get_text(strip=True)
-                try:
-                    # Assuming format is MM/DD/YYYY
-                    parsed_date = datetime.strptime(date_str, "%m/%d/%Y")
-                except ValueError:
-                    # If parsing fails, use the current time
-                    parsed_date = datetime.now()
-
-                article = {
+            articles.append(
+                {
                     "id": str(uuid.uuid4()),
                     "title": title,
                     "date": parsed_date.isoformat(),
-                    "body": body,
+                    "body": "",
                     "link": link,
                     "source": "SkyWest, Inc.",
                     "status": "new",
                 }
-                articles.append(article)
+            )
+
+            count += 1
+            if count >= 15:
+                break
 
         return articles
     except Exception as e:
