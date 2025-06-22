@@ -1,6 +1,6 @@
 import type { Article } from '../types';
 
-type ActionType = 'select' | 'edit' | 'post' | 'post-figma' | 'remix';
+type ActionType = 'select' | 'edit' | 'post' | 'post-figma' | 'remix' | 'score';
 
 interface ArticleCardProps {
     article: Article;
@@ -19,6 +19,22 @@ const ArticleCard = ({ article, onAction, isLoading }: ArticleCardProps) => {
                 return { text: 'POSTED', color: '#28a745' };
             default:
                 return { text: 'NEW', color: '#6c757d' };
+        }
+    };
+
+    const getScoreColor = (score: number) => {
+        if (score >= 80) return '#28a745';
+        if (score >= 60) return '#ffc107';
+        if (score >= 40) return '#fd7e14';
+        return '#dc3545';
+    };
+
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case 'high': return '#dc3545';
+            case 'medium': return '#ffc107';
+            case 'low': return '#6c757d';
+            default: return '#6c757d';
         }
     };
 
@@ -59,6 +75,51 @@ const ArticleCard = ({ article, onAction, isLoading }: ArticleCardProps) => {
                         : 'No summary available.'
                     }
                 </p>
+
+                {/* Scoring Display */}
+                {(article.score_relevance || article.score_vibe || article.score_viral) && (
+                    <div className="scoring-preview">
+                        <div className="scoring-scores">
+                            {article.score_relevance && (
+                                <span className="score-badge" style={{ color: getScoreColor(article.score_relevance) }}>
+                                    📊 {article.score_relevance}
+                                </span>
+                            )}
+                            {article.score_vibe && (
+                                <span className="score-badge" style={{ color: getScoreColor(article.score_vibe) }}>
+                                    🔥 {article.score_vibe}
+                                </span>
+                            )}
+                            {article.score_viral && (
+                                <span className="score-badge" style={{ color: getScoreColor(article.score_viral) }}>
+                                    🚀 {article.score_viral}
+                                </span>
+                            )}
+                        </div>
+                        
+                        {article.priority && (
+                            <span 
+                                className="priority-indicator" 
+                                style={{ backgroundColor: getPriorityColor(article.priority) }}
+                            >
+                                {article.priority.toUpperCase()}
+                            </span>
+                        )}
+                        
+                        {article.target_channels && article.target_channels.length > 0 && (
+                            <div className="target-channels">
+                                {article.target_channels.map((channel, index) => (
+                                    <span key={index} className="channel-indicator">
+                                        {channel === 'slack' && '💬'}
+                                        {channel === 'figma' && '🎨'}
+                                        {channel === 'whatsapp' && '📱'}
+                                        {channel === 'manual_review' && '👁️'}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Bottom Section */}
@@ -81,6 +142,15 @@ const ArticleCard = ({ article, onAction, isLoading }: ArticleCardProps) => {
                             className="action-btn remix-btn"
                         >
                             {isLoading ? 'Remixing...' : '🎛️ Remix Headline'}
+                        </button>
+
+                        {/* Score button - always available */}
+                        <button 
+                            onClick={() => onAction('score', article.id)}
+                            disabled={isLoading}
+                            className="action-btn score-btn"
+                        >
+                            {isLoading ? 'Scoring...' : '🎯 Score Article'}
                         </button>
 
                         {article.status === 'new' && (

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import ArticleCard from '../components/ArticleCard';
 import HeadlineRemixModal from '../components/HeadlineRemixModal';
+import ArticleScoring from '../components/ArticleScoring';
 import * as api from '../services/api';
 import type { Article } from '../types';
 import './Feed.css';
@@ -51,6 +52,10 @@ const Feed = () => {
   const [remixArticleTitle, setRemixArticleTitle] = useState<string>('');
   const [remixOptions, setRemixOptions] = useState<string[]>([]);
   const [isRemixing, setIsRemixing] = useState(false);
+
+  // Article scoring modal state
+  const [scoringModalOpen, setScoringModalOpen] = useState(false);
+  const [scoringArticle, setScoringArticle] = useState<Article | null>(null);
 
   /**
    * Fetches all news from the API and updates the component's state.
@@ -141,9 +146,14 @@ const Feed = () => {
    * @param action The type of action to perform.
    * @param storyId The ID of the target article.
    */
-  const handleAction = async (action: 'select' | 'edit' | 'post' | 'post-figma' | 'remix', storyId: string) => {
+  const handleAction = async (action: 'select' | 'edit' | 'post' | 'post-figma' | 'remix' | 'score', storyId: string) => {
     if (action === 'remix') {
       handleRemixAction(storyId);
+      return;
+    }
+
+    if (action === 'score') {
+      handleScoreAction(storyId);
       return;
     }
 
@@ -226,6 +236,38 @@ const Feed = () => {
       setRemixModalOpen(false);
     } finally {
       setIsRemixing(false);
+    }
+  };
+
+  /**
+   * Handles the article scoring action.
+   * @param storyId The ID of the target article.
+   */
+  const handleScoreAction = (storyId: string) => {
+    const article = articles.find(a => a.id === storyId);
+    if (!article) return;
+
+    setScoringArticle(article);
+    setScoringModalOpen(true);
+  };
+
+  /**
+   * Handles saving updated scores for an article.
+   * @param scores The updated scores.
+   */
+  const handleScoresUpdate = async (scores: { score_relevance: number; score_vibe: number; score_viral: number }) => {
+    if (!scoringArticle) return;
+
+    try {
+      await api.updateArticleScores(scoringArticle.id, scores);
+      
+      // Update the article in local state
+      updateArticleInState(scoringArticle.id, scores);
+      
+      setMessage('Article scores updated successfully!');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to update article scores.';
+      setError(errorMessage);
     }
   };
 
@@ -612,6 +654,29 @@ const Feed = () => {
         onSelectHeadline={handleSaveCustomTitle}
         isLoading={isRemixing}
       />
+
+      {/* Article Scoring Modal */}
+      {scoringModalOpen && scoringArticle && (
+        <div className="modal-overlay" onClick={() => setScoringModalOpen(false)}>
+          <div className="modal-content scoring-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🎯 Article Scoring</h2>
+              <button className="close-btn" onClick={() => setScoringModalOpen(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="article-info">
+                <h3>{scoringArticle.title}</h3>
+                <p className="article-source">Source: {scoringArticle.source}</p>
+              </div>
+              <ArticleScoring
+                article={scoringArticle}
+                onScoresUpdate={handleScoresUpdate}
+                isEditable={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
