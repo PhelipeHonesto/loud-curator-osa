@@ -18,7 +18,7 @@ const TestComponent = () => {
       <div data-testid="user">{user ? user.username : 'no-user'}</div>
       <div data-testid="is-authenticated">{isAuthenticated.toString()}</div>
       <div data-testid="is-loading">{isLoading.toString()}</div>
-      <button onClick={() => login('test-token')}>Login</button>
+      <button onClick={() => login('testuser', 'testpass')}>Login</button>
       <button onClick={logout}>Logout</button>
     </div>
   );

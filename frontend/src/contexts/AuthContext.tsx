@@ -11,17 +11,17 @@ interface User {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any;
+  user: User | null;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  loading: boolean;
+  isLoading: boolean;
   error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -36,8 +36,8 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // LOGIN DISABLED: Defaulting to an authenticated state for development.
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [user, setUser] = useState<any>({ username: 'dev_user' });
-  const [loading, setLoading] = useState<boolean>(false); // Was true, changed to false
+  const [user, setUser] = useState<User | null>({ username: 'dev_user' });
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Was true, changed to false
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -57,35 +57,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsAuthenticated(false);
           setUser(null);
         })
-        .finally(() => setLoading(false));
+        .finally(() => setIsLoading(false));
     } else {
-      setLoading(false);
+      setIsLoading(false);
     }
     */
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (_username: string, _password: string) => {
     // This is a no-op since login is disabled.
     console.log('Login functionality is currently disabled.');
     setError(null);
-    setLoading(true);
+    setIsLoading(true);
     // Simulate a successful login for UI consistency
     setIsAuthenticated(true);
     setUser({ username: 'dev_user' });
     navigate('/');
-    setLoading(false);
+    setIsLoading(false);
   };
 
-  const register = async (username: string, password: string) => {
+  const register = async (_username: string, _password: string) => {
     // This is a no-op since login is disabled.
     console.log('Register functionality is currently disabled.');
     setError(null);
-    setLoading(true);
+    setIsLoading(true);
     // Simulate a successful registration for UI consistency
     setIsAuthenticated(true);
     setUser({ username: 'dev_user' });
     navigate('/');
-    setLoading(false);
+    setIsLoading(false);
   };
 
   const logout = () => {
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, loading, error }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, isLoading, error }}>
       {children}
     </AuthContext.Provider>
   );

@@ -24,7 +24,7 @@ const Login: React.FC = () => {
     try {
       const response = await loginApi(username, password);
       if (response.access_token) {
-        login(response.access_token);
+        login(username, password);
         navigate(from, { replace: true });
       }
     } catch (err: any) {
