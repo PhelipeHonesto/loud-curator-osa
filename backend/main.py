@@ -19,7 +19,7 @@ from agents.groundnews_agent import GroundNewsAgent
 from agents.institutional_reader import InstitutionalReader
 from agents.rss_agent import RSSAgent
 from agents.headline_remixer import remix_headline, analyze_headline_style
-from agents.scoring_engine import score_article, decide_distribution
+from agents.scoring_engine import score_and_route_article, decide_distribution
 
 # Import database
 from database_sqlite import init_database, get_database
@@ -48,14 +48,14 @@ app = FastAPI(title="Loud Curator API", version="2.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Rate limiting middleware (if enabled)
-if settings.rate_limit_enabled:
+if settings.RATE_LIMIT_ENABLED:
     app.middleware("http")(rate_limit_middleware)
     logger.info("Rate limiting enabled")
 
@@ -68,15 +68,15 @@ except Exception as e:
     raise
 
 # Security configuration from settings
-SECRET_KEY = settings.secret_key
-ALGORITHM = settings.algorithm
-ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 # JWT utility functions
-def create_access_token(data: dict, expires_delta: int = None):
+def create_access_token(data: dict, expires_delta: Optional[int] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + timedelta(minutes=expires_delta)
@@ -96,11 +96,21 @@ def decode_access_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
-    username = decode_access_token(token)
-    user = db.get_user_by_username(username)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
+    """
+    Get the current user from the token.
+    LOGIN IS CURRENTLY DISABLED FOR DEVELOPMENT.
+    This function will return a dummy user without token validation.
+    """
+    # Temporarily bypass token validation and return a mock user
+    return {"username": "dev_user", "sub": "dev_user"}
+    
+    # try:
+    #     payload = decode_access_token(token)
+    #     if payload is None:
+    #         raise HTTPException(status_code=401, detail="Invalid token")
+    #     return payload
+    # except JWTError:
+    #     raise HTTPException(status_code=401, detail="Invalid token")
 
 def dummy_ingest_callback():
     # This is a placeholder for the scheduler's ingest callback
@@ -160,8 +170,8 @@ async def root():
         "version": "2.0.0",
         "status": "running",
         "timestamp": datetime.now().isoformat(),
-        "environment": "production" if settings.secret_key != "supersecretkey" else "development",
-        "rate_limiting": settings.rate_limit_enabled
+        "environment": "production" if settings.SECRET_KEY != "your-secure-secret-key-for-dev" else "development",
+        "rate_limiting": settings.RATE_LIMIT_ENABLED
     }
 
 @app.get("/health")
@@ -183,10 +193,10 @@ async def health_check():
                 "status": "running" if scheduler.is_running else "stopped"
             },
             "environment": {
-                "openai_configured": bool(settings.openai_api_key),
-                "slack_configured": bool(settings.slack_webhook_url),
-                "newsdata_configured": bool(settings.newsdata_api_key),
-                "groundnews_configured": bool(settings.groundnews_api_key)
+                "openai_configured": bool(settings.OPENAI_API_KEY),
+                "slack_configured": bool(settings.SLACK_WEBHOOK_URL),
+                "newsdata_configured": bool(settings.NEWSDATA_API_KEY),
+                "groundnews_configured": bool(settings.GROUNDNEWS_API_KEY)
             }
         }
     except Exception as e:
@@ -208,10 +218,10 @@ async def detailed_health_check():
         
         # External API health checks (basic connectivity)
         external_apis = {
-            "openai": bool(settings.openai_api_key),
-            "slack": bool(settings.slack_webhook_url),
-            "newsdata": bool(settings.newsdata_api_key),
-            "groundnews": bool(settings.groundnews_api_key)
+            "openai": bool(settings.OPENAI_API_KEY),
+            "slack": bool(settings.SLACK_WEBHOOK_URL),
+            "newsdata": bool(settings.NEWSDATA_API_KEY),
+            "groundnews": bool(settings.GROUNDNEWS_API_KEY)
         }
         
         overall_healthy = db_healthy and scheduler_healthy
@@ -242,7 +252,7 @@ async def rate_limit_status():
     from middleware import rate_limiter
     
     return {
-        "rate_limiting_enabled": settings.rate_limit_enabled,
+        "rate_limiting_enabled": settings.RATE_LIMIT_ENABLED,
         "requests_per_window": rate_limiter.requests_per_window,
         "window_seconds": rate_limiter.window_seconds,
         "active_clients": len(rate_limiter.requests)
@@ -400,16 +410,10 @@ async def run_ingestion():
             logger.info("Scoring articles for distribution...")
             for article in unique_articles:
                 try:
-                    scores = score_article(article)
-                    article.update(scores)
+                    result = score_and_route_article(article)
+                    article.update(result)
                     
-                    # Determine distribution targets
-                    distribution = decide_distribution(article)
-                    article['target_channels'] = distribution['target_channels']
-                    article['auto_post'] = distribution['auto_post']
-                    article['priority'] = distribution['priority']
-                    
-                    logger.info(f"Scored article '{article.get('title', 'Unknown')}': {scores}")
+                    logger.info(f"Scored article '{article.get('title', 'Unknown')}': {result}")
                 except Exception as e:
                     logger.error(f"Error scoring article: {e}")
                     # Set default scores if scoring fails
@@ -811,27 +815,20 @@ async def score_article_endpoint(article_id: str):
         article = db.get_article_by_id(article_id)
         if not article:
             raise HTTPException(status_code=404, detail="Article not found")
-        
-        # Score the article
-        scores = score_article(article)
-        
-        # Determine distribution
-        distribution = decide_distribution({**article, **scores})
-        
-        # Update the article with scores and distribution
-        article.update(scores)
-        article.update(distribution)
-        
-        # Save to database
+        # Score and route the article
+        result = score_and_route_article(article)
+        article.update(result)
         db.save_article(article)
-        
-        logger.info(f"Scored article {article_id}: {scores}")
+        logger.info(f"Scored article {article_id}: {result}")
         return {
-            "scores": scores,
-            "distribution": distribution,
+            "scores": {k: v for k, v in result.items() if k.startswith('score_')},
+            "distribution": {
+                "target_channels": result.get("target_channels", []),
+                "priority": result.get("priority", "low"),
+                "auto_post": result.get("auto_post", False)
+            },
             "message": "Article scored successfully"
         }
-        
     except HTTPException:
         raise
     except Exception as e:

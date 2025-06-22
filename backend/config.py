@@ -1,93 +1,66 @@
-from pydantic import field_validator, ConfigDict
 from typing import Optional
-import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import ValidationError
 
-# Import BaseSettings with explicit fallback
-try:
-    from pydantic_settings import BaseSettings
-    BaseSettingsType = BaseSettings
-except ImportError:
-    from pydantic import BaseSettings
-    BaseSettingsType = BaseSettings
-
-
-class Settings(BaseSettingsType):
-    """Application settings with environment variable validation."""
-    
-    # API Keys
-    openai_api_key: Optional[str] = None
-    newsdata_api_key: Optional[str] = None
-    groundnews_api_key: Optional[str] = None
-    
-    # Slack Integration
-    slack_webhook_url: Optional[str] = None
-    slack_webhook_figma_url: Optional[str] = None
-    
+class Settings(BaseSettings):
+    """
+    Application settings loaded from environment variables.
+    """
     # Security
-    secret_key: str = "supersecretkey"
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60 * 24 * 7  # 1 week
-    
+    SECRET_KEY: str = "your-secure-secret-key-for-dev"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 1 week
+
+    # Optional service keys - allow them to be None for local dev
+    OPENAI_API_KEY: Optional[str] = None
+    SLACK_WEBHOOK_URL: Optional[str] = None
+    SLACK_WEBHOOK_FIGMA_URL: Optional[str] = None
+    NEWSDATA_API_KEY: Optional[str] = None
+    GROUNDNEWS_API_KEY: Optional[str] = None
+
     # Database
-    database_url: str = "sqlite:///./news.db"
-    
+    DATABASE_URL: str = "sqlite:///./news.db"
+
     # Logging
-    log_level: str = "INFO"
-    log_file: str = "app.log"
-    
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE: str = "app.log"
+
     # CORS
-    allowed_origins: list = ["http://localhost:5173", "http://localhost:3000"]
-    
-    # Rate Limiting
-    rate_limit_enabled: bool = False
-    rate_limit_requests: int = 100
-    rate_limit_window: int = 3600  # 1 hour
-    
-    @field_validator('openai_api_key')
-    @classmethod
-    def validate_openai_key(cls, v):
-        if not v:
-            raise ValueError("OPENAI_API_KEY is required for AI features")
-        return v
-    
-    @field_validator('slack_webhook_url')
-    @classmethod
-    def validate_slack_webhook(cls, v):
-        if not v:
-            raise ValueError("SLACK_WEBHOOK_URL is required for Slack posting")
-        return v
-    
-    @field_validator('secret_key')
-    @classmethod
-    def validate_secret_key(cls, v):
-        if v == "supersecretkey":
-            print("⚠️  WARNING: Using default SECRET_KEY. Set a secure SECRET_KEY for production.")
-        return v
-    
-    model_config = ConfigDict(
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    # Rate limiting
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_REQUESTS: int = 100
+    RATE_LIMIT_WINDOW: int = 3600  # 1 hour in seconds
+
+    model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False
     )
 
-
-def validate_environment():
-    """Validate all required environment variables are set."""
+def validate_environment() -> Settings:
+    """
+    Validates environment variables by loading them into the Settings model.
+    Prints helpful messages for developers.
+    """
     try:
         settings = Settings()
-        print("✅ Environment validation passed")
+        if settings.SECRET_KEY == "your-secure-secret-key-for-dev":
+            print("⚠️  WARNING: Using default SECRET_KEY. Set a secure SECRET_KEY for production.")
+        
+        # Check for optional but recommended keys for full functionality
+        if not settings.OPENAI_API_KEY:
+            print("⚠️  WARNING: OPENAI_API_KEY is not set. AI features will be disabled.")
+        if not settings.SLACK_WEBHOOK_URL:
+            print("⚠️  WARNING: SLACK_WEBHOOK_URL is not set. Slack posting will be disabled.")
+
+        print("✅ Environment validation passed. Settings loaded.")
         return settings
-    except ValueError as e:
-        print(f"❌ Environment validation failed: {e}")
-        print("\nRequired environment variables:")
-        print("- OPENAI_API_KEY: Your OpenAI API key")
-        print("- SLACK_WEBHOOK_URL: Your Slack webhook URL")
-        print("- SLACK_WEBHOOK_FIGMA_URL: Your Figma Slack webhook URL (optional)")
-        print("- NEWSDATA_API_KEY: Your NewsData.io API key (optional)")
-        print("- GROUNDNEWS_API_KEY: Your Ground News API key (optional)")
-        print("- SECRET_KEY: A secure secret key for JWT tokens")
+    except ValidationError as e:
+        print("❌ Environment validation failed. Please check your .env file or environment variables.")
+        print(e)
         raise
 
-
-# Global settings instance
+# Global settings instance, validated on startup
 settings = validate_environment() 

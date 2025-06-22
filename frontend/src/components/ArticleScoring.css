@@ -1,10 +1,10 @@
 .article-scoring {
-    background: #091c35;
+    background: #0d1117;
     border-radius: 12px;
-    padding: 20px;
+    padding: 24px;
     margin: 20px 0;
-    border: 1px solid #0e2a52;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid #30363d;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
 .scoring-header {
@@ -18,9 +18,10 @@
 
 .scoring-header h3 {
     margin: 0;
-    color: white;
-    font-size: 1.2rem;
+    color: #c9d1d9;
+    font-size: 1.3rem;
     font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 .scoring-actions {
@@ -74,10 +75,16 @@
 }
 
 .score-item {
-    background: #0e2a52;
-    border-radius: 8px;
-    padding: 16px;
-    border: 1px solid #1e3a72;
+    background: #161b22;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #30363d;
+    transition: all 0.2s ease-in-out;
+}
+
+.score-item:hover {
+    transform: translateY(-2px);
+    border-color: #8b949e;
 }
 
 .score-header {
@@ -88,9 +95,9 @@
 }
 
 .score-label {
-    color: #b8c5d6;
+    color: #c9d1d9;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .score-value {
@@ -142,22 +149,24 @@
 }
 
 .score-explanation {
-    color: #6c757d;
-    font-size: 0.75rem;
+    color: #8b949e;
+    font-size: 0.8rem;
     font-style: italic;
+    margin-top: 4px;
 }
 
 .distribution-section {
-    background: #0e2a52;
-    border-radius: 8px;
-    padding: 16px;
-    border: 1px solid #1e3a72;
+    background: #161b22;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #30363d;
+    margin-top: 20px;
 }
 
 .distribution-section h4 {
     margin: 0 0 16px 0;
-    color: white;
-    font-size: 1rem;
+    color: #c9d1d9;
+    font-size: 1.1rem;
     font-weight: 600;
 }
 
@@ -186,14 +195,19 @@
 }
 
 .channel-badge {
-    background: linear-gradient(135deg, #f17500, #ffae42);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    background: #21262d;
+    color: #c9d1d9;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid #30363d;
+    transition: all 0.2s;
+}
+
+.channel-badge:hover {
+    background: #30363d;
+    border-color: #8b949e;
 }
 
 .no-channels {

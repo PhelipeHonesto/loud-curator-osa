@@ -117,6 +117,19 @@ const Feed = () => {
   }, []);
 
   /**
+   * Updates an article in the local state.
+   * This is passed to child components to keep data in sync after API calls.
+   * @param articleId The ID of the article to update.
+   * @param updates A partial article object with the new data.
+   */
+  const handleArticleUpdate = (articleId: string, updates: Partial<Article>) => {
+    updateArticleInState(articleId, updates);
+    // Optionally, show a success message, though the modal gives feedback too.
+    // setMessage('Article updated!');
+    // setTimeout(() => setMessage(null), 3000);
+  };
+
+  /**
    * Triggers the backend to ingest new articles from all sources,
    * then reloads the news feed to display them.
    */
@@ -254,16 +267,21 @@ const Feed = () => {
   /**
    * Handles saving updated scores for an article.
    * @param scores The updated scores.
+   * @param distribution The updated distribution (optional).
    */
-  const handleScoresUpdate = async (scores: { score_relevance: number; score_vibe: number; score_viral: number }) => {
+  const handleScoresUpdate = async (
+    scores: { score_relevance: number; score_vibe: number; score_viral: number },
+    distribution?: any
+  ) => {
     if (!scoringArticle) return;
 
     try {
       await api.updateArticleScores(scoringArticle.id, scores);
-      
-      // Update the article in local state
-      updateArticleInState(scoringArticle.id, scores);
-      
+      // Update the article in local state with scores and distribution if provided
+      updateArticleInState(scoringArticle.id, {
+        ...scores,
+        ...(distribution || {})
+      });
       setMessage('Article scores updated successfully!');
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to update article scores.';
@@ -670,7 +688,7 @@ const Feed = () => {
               </div>
               <ArticleScoring
                 article={scoringArticle}
-                onScoresUpdate={handleScoresUpdate}
+                onArticleUpdate={handleArticleUpdate}
                 isEditable={true}
               />
             </div>

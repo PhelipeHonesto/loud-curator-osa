@@ -1,14 +1,14 @@
 fastapi
-uvicorn
-requests
-beautifulsoup4
+uvicorn==0.30.1
+requests==2.32.3
+beautifulsoup4==4.12.3
 lxml
-python-dotenv
-openai
+python-dotenv==1.0.1
+openai==1.35.13
 pytest
 pytest-cov
 pytest-mock
-feedparser
+feedparser==6.0.11
 schedule
 pydantic
 pydantic-settings
@@ -16,3 +16,4 @@ PyJWT
 python-jose[cryptography]
 passlib[bcrypt]
 python-multipart 
+watchdog==4.0.1

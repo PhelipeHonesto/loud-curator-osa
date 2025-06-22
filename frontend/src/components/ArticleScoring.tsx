@@ -5,13 +5,13 @@ import './ArticleScoring.css';
 
 interface ArticleScoringProps {
     article: Article;
-    onScoresUpdate?: (scores: { score_relevance: number; score_vibe: number; score_viral: number }) => void;
+    onArticleUpdate: (articleId: string, updates: Partial<Article>) => void;
     isEditable?: boolean;
 }
 
 const ArticleScoring: React.FC<ArticleScoringProps> = ({
     article,
-    onScoresUpdate,
+    onArticleUpdate,
     isEditable = true
 }) => {
     const [scores, setScores] = useState({
@@ -38,24 +38,28 @@ const ArticleScoring: React.FC<ArticleScoringProps> = ({
     };
 
     const handleScoreChange = (scoreType: string, value: number) => {
-        const newScores = { ...scores, [scoreType]: value };
-        setScores(newScores);
-        
-        if (onScoresUpdate) {
-            onScoresUpdate(newScores);
-        }
+        // Only update local state on slider change
+        setScores(prevScores => ({ ...prevScores, [scoreType]: value }));
     };
 
     const handleAutoScore = async () => {
         setIsLoading(true);
         try {
             const result = await api.scoreArticle(article.id);
+            console.log('Auto-score API result:', result); // Diagnostic log
+
+            const updates = {
+                ...result.scores,
+                ...result.distribution
+            };
+
+            // Update local state for immediate UI feedback
             setScores(result.scores);
             setDistribution(result.distribution);
             
-            if (onScoresUpdate) {
-                onScoresUpdate(result.scores);
-            }
+            // Update parent component's state
+            onArticleUpdate(article.id, updates);
+
         } catch (error) {
             console.error('Failed to auto-score article:', error);
         } finally {
@@ -66,9 +70,19 @@ const ArticleScoring: React.FC<ArticleScoringProps> = ({
     const handleSaveScores = async () => {
         setIsLoading(true);
         try {
-            await api.updateArticleScores(article.id, scores);
-            await loadDistribution();
-        } catch (error) {
+            const result = await api.updateArticleScores(article.id, scores);
+            
+            const updates = {
+                ...result.scores,
+                ...result.distribution
+            };
+
+            // Update local state and parent state
+            setDistribution(result.distribution);
+            onArticleUpdate(article.id, updates);
+
+        } catch (error)
+        {
             console.error('Failed to save scores:', error);
         } finally {
             setIsLoading(false);
@@ -92,10 +106,11 @@ const ArticleScoring: React.FC<ArticleScoringProps> = ({
     };
 
     const getChannelIcon = (channel: string) => {
-        switch (channel) {
+        switch (channel.toLowerCase()) {
             case 'slack': return '💬';
             case 'figma': return '🎨';
             case 'whatsapp': return '📱';
+            case 'nft': return '💎';
             case 'manual_review': return '👁️';
             default: return '📢';
         }
@@ -131,7 +146,7 @@ const ArticleScoring: React.FC<ArticleScoringProps> = ({
                 {/* Relevance Score */}
                 <div className="score-item">
                     <div className="score-header">
-                        <span className="score-label">📊 Relevance</span>
+                        <span className="score-label">🎯 Relevance</span>
                         <span className="score-value" style={{ color: getScoreColor(scores.score_relevance) }}>
                             {scores.score_relevance}
                         </span>
@@ -153,7 +168,7 @@ const ArticleScoring: React.FC<ArticleScoringProps> = ({
                         />
                     )}
                     <div className="score-explanation">
-                        How important for aviation community
+                        Is it useful & impactful for the aviation community?
                     </div>
                 </div>
 
@@ -182,14 +197,14 @@ const ArticleScoring: React.FC<ArticleScoringProps> = ({
                         />
                     )}
                     <div className="score-explanation">
-                        Matches Loud Hawk's rebellious tone
+                        Does it have the rebellious *Loud Hawk* attitude?
                     </div>
                 </div>
 
                 {/* Viral Score */}
                 <div className="score-item">
                     <div className="score-header">
-                        <span className="score-label">🚀 Viral</span>
+                        <span className="score-label">🚀 Virality</span>
                         <span className="score-value" style={{ color: getScoreColor(scores.score_viral) }}>
                             {scores.score_viral}
                         </span>
@@ -211,7 +226,7 @@ const ArticleScoring: React.FC<ArticleScoringProps> = ({
                         />
                     )}
                     <div className="score-explanation">
-                        Potential to be shared and go viral
+                        Could it spark reactions or go viral on social?
                     </div>
                 </div>
             </div>

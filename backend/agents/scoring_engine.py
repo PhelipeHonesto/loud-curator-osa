@@ -6,145 +6,77 @@ from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
-def score_article(article: Dict[str, Any]) -> Dict[str, int]:
+def score_and_route_article(article: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Score an article on three dimensions for Loud Hawk distribution.
-    
-    Args:
-        article: Article dictionary with title and body
-        
-    Returns:
-        Dictionary with score_relevance, score_vibe, score_viral (0-100)
+    Score an article and decide distribution channels for Loud Hawk.
+    Returns a dict with scores and target channels.
     """
+    # --- AI Scoring ---
     try:
-        # Get OpenAI API key
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             logger.error("OPENAI_API_KEY not found in environment")
-            return {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
-        
-        client = OpenAI(api_key=api_key)
-        
-        # Loud Hawk-specific scoring prompt
-        prompt = f"""
-        You're a Gen Z aviation editor at Loud Hawk, Orange Sunshine Aviation's media engine.
-        
-        Analyze this aviation article and score it from 0-100 on three dimensions:
-
-        **1. RELEVANCE (0-100)**
-        - How useful/important is this for the aviation community?
-        - Does it affect pilots, mechanics, enthusiasts, or industry?
-        - Is it breaking news, safety info, or industry developments?
-        - Higher scores for: safety incidents, regulatory changes, major industry news
-        - Lower scores for: generic travel articles, non-aviation content
-
-        **2. VIBE (0-100)**
-        - How well does it match Loud Hawk's rebellious, sarcastic, Gen Z tone?
-        - Does it have attitude, edge, or controversy potential?
-        - Would it fit in a "hot takes" or "spicy aviation news" format?
-        - Higher scores for: drama, controversy, irony, corporate BS, pilot stories
-        - Lower scores for: corporate PR, boring technical specs, generic news
-
-        **3. VIRALITY (0-100)**
-        - How likely is this to be shared, commented on, or go viral?
-        - Does it have emotional impact, humor, or shock value?
-        - Would people want to share this with their aviation friends?
-        - Higher scores for: shocking incidents, funny stories, dramatic events
-        - Lower scores for: routine updates, boring announcements
-
-        **ARTICLE TO SCORE:**
-        Title: {article.get('title', 'No title')}
-        Body: {article.get('body', 'No content')[:800]}...
-        Source: {article.get('source', 'Unknown')}
-
-        Respond ONLY with valid JSON in this exact format:
-        {{
-            "score_relevance": [0-100],
-            "score_vibe": [0-100],
-            "score_viral": [0-100]
-        }}
-
-        No explanations, just the JSON object.
-        """
-
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=150
-        )
-
-        content = response.choices[0].message.content
-        if not content:
-            logger.error("Empty response from OpenAI")
-            return {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
-        
-        # Parse JSON response
-        try:
-            scores = json.loads(content.strip())
-            
-            # Validate scores are within range
-            for key in ['score_relevance', 'score_vibe', 'score_viral']:
-                if key not in scores:
-                    scores[key] = 50
-                else:
-                    scores[key] = max(0, min(100, int(scores[key])))
-            
-            logger.info(f"Scored article '{article.get('title', 'Unknown')}': {scores}")
-            return scores
-            
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse scoring response: {e}")
-            return {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
-            
+            scores = {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
+        else:
+            client = OpenAI(api_key=api_key)
+            prompt = f"""
+You're an editorial assistant for a rebellious Gen Z aviation brand.\n\nAnalyze this news article and give 3 scores (0–100):\n\n1. **Relevance** – Is it useful, timely, and impactful for the aviation community?\n2. **Vibe** – Does it match our *Loud Hawk* tone (sarcastic, rebellious, punchy)?\n3. **Virality** – Could it spread on social, spark strong reactions, or memes?\n\nRespond in JSON like:\n{{\n  \"score_relevance\": 0–100,\n  \"score_vibe\": 0–100,\n  \"score_viral\": 0–100\n}}\n\nArticle:\nTitle: {article.get('title', 'No title')}\nBody: {article.get('body', 'No content')[:800]}\n"""
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=150
+            )
+            content = response.choices[0].message.content
+            if not content:
+                logger.error("Empty response from OpenAI")
+                scores = {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
+            else:
+                try:
+                    scores = json.loads(content.strip())
+                    for key in ["score_relevance", "score_vibe", "score_viral"]:
+                        if key not in scores:
+                            scores[key] = 50
+                        else:
+                            scores[key] = max(0, min(100, int(scores[key])))
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse scoring response: {e}")
+                    scores = {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
     except Exception as e:
         logger.error(f"Error scoring article: {e}")
-        return {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
+        scores = {"score_relevance": 50, "score_vibe": 50, "score_viral": 50}
+
+    # --- Distribution Logic ---
+    r = scores["score_relevance"]
+    v = scores["score_vibe"]
+    vir = scores["score_viral"]
+    channels = []
+    if r >= 85 and v >= 85:
+        channels = ["slack", "whatsapp", "figma", "nft"]
+    elif v >= 80 and vir >= 75:
+        channels = ["whatsapp", "figma"]
+    elif r >= 70 and vir >= 80:
+        channels = ["slack", "figma"]
+    elif vir >= 90:
+        channels = ["figma"]
+    elif v >= 60:
+        channels = ["whatsapp"]
+    # Priority and auto_post
+    priority = "high" if r >= 85 else "medium" if r >= 70 else "low"
+    auto_post = True if r >= 85 or (v >= 80 and vir >= 75) else False
+    return {
+        **scores,
+        "target_channels": channels,
+        "priority": priority,
+        "auto_post": auto_post
+    }
 
 def decide_distribution(article: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Decide where to distribute an article based on its scores.
-    
-    Args:
-        article: Article with scoring fields
-        
-    Returns:
-        Dictionary with distribution decisions
-    """
-    relevance = article.get('score_relevance', 50)
-    vibe = article.get('score_vibe', 50)
-    viral = article.get('score_viral', 50)
-    
-    # Distribution logic based on Loud Hawk's strategy
-    targets = []
-    auto_post = False
-    
-    # High relevance + high vibe = Slack (main channel)
-    if relevance >= 75 and vibe >= 70:
-        targets.append("slack")
-        auto_post = True
-    
-    # High vibe + high viral = Figma (design team)
-    if vibe >= 65 and viral >= 70:
-        targets.append("figma")
-        if relevance >= 60:
-            auto_post = True
-    
-    # High viral + decent relevance = WhatsApp (community)
-    if viral >= 75 and relevance >= 50:
-        targets.append("whatsapp")
-        if vibe >= 60:
-            auto_post = True
-    
-    # High relevance but low vibe = manual review needed
-    if relevance >= 80 and vibe < 50:
-        targets.append("manual_review")
-        auto_post = False
-    
+    result = score_and_route_article(article)
     return {
-        "target_channels": targets,
-        "auto_post": auto_post,
-        "priority": "high" if relevance >= 80 else "medium" if relevance >= 60 else "low"
+        "target_channels": result["target_channels"],
+        "priority": result["priority"],
+        "auto_post": result["auto_post"]
     }
 
 def get_score_description(score: int, score_type: str) -> str:

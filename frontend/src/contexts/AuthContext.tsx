@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { getCurrentUser } from '../services/api';
+import * as api from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   username: string;
@@ -8,15 +10,16 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (token: string) => void;
+  user: any;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  checkAuth: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -30,54 +33,71 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  // LOGIN DISABLED: Defaulting to an authenticated state for development.
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [user, setUser] = useState<any>({ username: 'dev_user' });
+  const [loading, setLoading] = useState<boolean>(false); // Was true, changed to false
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const checkAuth = async () => {
+  useEffect(() => {
+    // Since login is disabled, this check is bypassed.
+    // If you re-enable login, uncomment this.
+    /*
     const token = localStorage.getItem('token');
-    if (!token) {
-      setIsLoading(false);
-      return;
+    if (token) {
+      api.getCurrentUser()
+        .then(userData => {
+          setUser(userData);
+          setIsAuthenticated(true);
+        })
+        .catch(() => {
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+          setUser(null);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
+    */
+  }, []);
 
-    try {
-      const userData = await getCurrentUser();
-      setUser(userData);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+  const login = async (username: string, password: string) => {
+    // This is a no-op since login is disabled.
+    console.log('Login functionality is currently disabled.');
+    setError(null);
+    setLoading(true);
+    // Simulate a successful login for UI consistency
+    setIsAuthenticated(true);
+    setUser({ username: 'dev_user' });
+    navigate('/');
+    setLoading(false);
   };
 
-  const login = (token: string) => {
-    localStorage.setItem('token', token);
-    checkAuth();
+  const register = async (username: string, password: string) => {
+    // This is a no-op since login is disabled.
+    console.log('Register functionality is currently disabled.');
+    setError(null);
+    setLoading(true);
+    // Simulate a successful registration for UI consistency
+    setIsAuthenticated(true);
+    setUser({ username: 'dev_user' });
+    navigate('/');
+    setLoading(false);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    // Also a no-op, but we'll clear state for completeness.
+    setIsAuthenticated(false);
     setUser(null);
-  };
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    logout,
-    checkAuth,
+    localStorage.removeItem('token'); // Clear token just in case
+    navigate('/login');
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, loading, error }}>
       {children}
     </AuthContext.Provider>
   );
