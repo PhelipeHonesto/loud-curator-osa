@@ -19,6 +19,7 @@ from agents.groundnews_agent import GroundNewsAgent
 from agents.institutional_reader import InstitutionalReader
 from agents.rss_agent import RSSAgent
 from agents.headline_remixer import remix_headline, analyze_headline_style
+from agents.scoring_engine import score_article, decide_distribution
 
 # Import database
 from database_sqlite import init_database, get_database
@@ -394,6 +395,32 @@ async def run_ingestion():
             # Deduplicate articles
             unique_articles = deduplicate_articles(all_articles)
             logger.info(f"Deduplicated {len(all_articles)} articles to {len(unique_articles)} unique articles")
+            
+            # Score articles for Loud Hawk distribution
+            logger.info("Scoring articles for distribution...")
+            for article in unique_articles:
+                try:
+                    scores = score_article(article)
+                    article.update(scores)
+                    
+                    # Determine distribution targets
+                    distribution = decide_distribution(article)
+                    article['target_channels'] = distribution['target_channels']
+                    article['auto_post'] = distribution['auto_post']
+                    article['priority'] = distribution['priority']
+                    
+                    logger.info(f"Scored article '{article.get('title', 'Unknown')}': {scores}")
+                except Exception as e:
+                    logger.error(f"Error scoring article: {e}")
+                    # Set default scores if scoring fails
+                    article.update({
+                        'score_relevance': 50,
+                        'score_vibe': 50,
+                        'score_viral': 50,
+                        'target_channels': [],
+                        'auto_post': False,
+                        'priority': 'low'
+                    })
             
             # Save to database
             success = db.save_all_articles(unique_articles)
@@ -774,6 +801,108 @@ async def analyze_headline_endpoint(article_id: str):
     except Exception as e:
         logger.error(f"Error analyzing headline for article {article_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to analyze headline")
+
+# Article scoring endpoints
+@app.post("/articles/{article_id}/score")
+async def score_article_endpoint(article_id: str):
+    """Manually score an article."""
+    try:
+        # Get the article
+        article = db.get_article_by_id(article_id)
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+        
+        # Score the article
+        scores = score_article(article)
+        
+        # Determine distribution
+        distribution = decide_distribution({**article, **scores})
+        
+        # Update the article with scores and distribution
+        article.update(scores)
+        article.update(distribution)
+        
+        # Save to database
+        db.save_article(article)
+        
+        logger.info(f"Scored article {article_id}: {scores}")
+        return {
+            "scores": scores,
+            "distribution": distribution,
+            "message": "Article scored successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error scoring article {article_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to score article")
+
+@app.put("/articles/{article_id}/scores")
+async def update_article_scores(article_id: str, scores: Dict[str, int]):
+    """Manually update article scores."""
+    try:
+        # Get the article
+        article = db.get_article_by_id(article_id)
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+        
+        # Validate scores
+        for key in ['score_relevance', 'score_vibe', 'score_viral']:
+            if key in scores:
+                scores[key] = max(0, min(100, scores[key]))
+        
+        # Update article with new scores
+        article.update(scores)
+        
+        # Recalculate distribution
+        distribution = decide_distribution(article)
+        article.update(distribution)
+        
+        # Save to database
+        db.save_article(article)
+        
+        logger.info(f"Updated scores for article {article_id}: {scores}")
+        return {
+            "scores": {k: v for k, v in scores.items() if k.startswith('score_')},
+            "distribution": distribution,
+            "message": "Article scores updated successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating scores for article {article_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update article scores")
+
+@app.get("/articles/{article_id}/distribution")
+async def get_article_distribution(article_id: str):
+    """Get distribution recommendations for an article."""
+    try:
+        # Get the article
+        article = db.get_article_by_id(article_id)
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+        
+        # Calculate distribution
+        distribution = decide_distribution(article)
+        
+        return {
+            "article_id": article_id,
+            "title": article.get("title"),
+            "scores": {
+                "relevance": article.get("score_relevance", 50),
+                "vibe": article.get("score_vibe", 50),
+                "viral": article.get("score_viral", 50)
+            },
+            "distribution": distribution
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting distribution for article {article_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get article distribution")
 
 # Error handlers
 @app.exception_handler(Exception)

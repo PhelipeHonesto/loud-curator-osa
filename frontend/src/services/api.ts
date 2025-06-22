@@ -130,3 +130,31 @@ export const analyzeHeadline = async (articleId: string) => {
   });
   return handleResponse(response);
 };
+
+// Article scoring functions
+export const scoreArticle = async (articleId: string) => {
+  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/score`, { 
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
+
+export const updateArticleScores = async (articleId: string, scores: { score_relevance?: number; score_vibe?: number; score_viral?: number }) => {
+  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/scores`, { 
+    method: 'PUT',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(scores),
+  });
+  return handleResponse(response);
+};
+
+export const getArticleDistribution = async (articleId: string) => {
+  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/distribution`, { 
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};

@@ -36,6 +36,9 @@ class SQLiteDatabase:
                         author TEXT,
                         category TEXT,
                         feed_url TEXT,
+                        score_relevance INTEGER DEFAULT 50,
+                        score_vibe INTEGER DEFAULT 50,
+                        score_viral INTEGER DEFAULT 50,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
@@ -82,8 +85,8 @@ class SQLiteDatabase:
                 
                 cursor.execute('''
                     INSERT OR REPLACE INTO articles 
-                    (id, title, body, link, source, date, status, tone, custom_title, author, category, feed_url, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, title, body, link, source, date, status, tone, custom_title, author, category, feed_url, score_relevance, score_vibe, score_viral, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     article.get('id'),
                     article.get('title'),
@@ -97,6 +100,9 @@ class SQLiteDatabase:
                     article.get('author'),
                     json.dumps(article.get('category', [])),
                     article.get('feed_url'),
+                    article.get('score_relevance', 50),
+                    article.get('score_vibe', 50),
+                    article.get('score_viral', 50),
                     datetime.now().isoformat()
                 ))
                 
@@ -116,8 +122,8 @@ class SQLiteDatabase:
                 for article in articles:
                     cursor.execute('''
                         INSERT OR REPLACE INTO articles 
-                        (id, title, body, link, source, date, status, tone, custom_title, author, category, feed_url, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        (id, title, body, link, source, date, status, tone, custom_title, author, category, feed_url, score_relevance, score_vibe, score_viral, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         article.get('id'),
                         article.get('title'),
@@ -131,6 +137,9 @@ class SQLiteDatabase:
                         article.get('author'),
                         json.dumps(article.get('category', [])),
                         article.get('feed_url'),
+                        article.get('score_relevance', 50),
+                        article.get('score_vibe', 50),
+                        article.get('score_viral', 50),
                         datetime.now().isoformat()
                     ))
                 
