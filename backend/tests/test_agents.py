@@ -2,8 +2,16 @@ import pytest
 from unittest.mock import patch, Mock
 from agents.aviation_pages_reader import fetch_skywest_news
 from agents.newsdata_agent import fetch_newsdata_news
-from agents.institutional_reader import fetch_institutional_news, fetch_reuters_aviation
+from agents.institutional_reader import (
+    fetch_institutional_news,
+    fetch_reuters_aviation,
+)
 from agents.groundnews_agent import fetch_groundnews_articles
+
+# Explicitly configure logging for the tests
+from logging_config import setup_logging
+
+setup_logging(enable_file=False)
 
 
 class TestAviationPagesReader:

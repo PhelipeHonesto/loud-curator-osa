@@ -412,11 +412,8 @@ def get_log_stats() -> Dict[str, Any]:
     return stats
 
 
-# Initialize logging when module is imported
-setup_logging()
-
 # Create logger instances for different components
 api_logger = get_logger("api")
 agent_logger = get_logger("agents")
 scheduler_logger = get_logger("scheduler")
-database_logger = get_logger("database") 
+database_logger = get_logger("database")
